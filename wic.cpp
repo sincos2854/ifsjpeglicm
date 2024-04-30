@@ -34,7 +34,14 @@ int SpiWic::Decode(
         hr = CoInitializeEx(NULL, COINIT_MULTITHREADED | COINIT_DISABLE_OLE1DDE);
         if (FAILED(hr)) return SPI_OTHER_ERROR;
 
-        initialized_ = true;
+        if (hr == S_OK)
+        {
+            initialized_ = true;
+        }
+        else if (hr == S_FALSE)
+        {
+            CoUninitialize();
+        }
 
         hr = CoCreateInstance(
             CLSID_WICImagingFactory,
