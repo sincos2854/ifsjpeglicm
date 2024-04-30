@@ -1,9 +1,9 @@
 // Copyright (c) 2024 sincos2854
 // Licensed under the MIT License
 
-#include <memory>
 #include <string>
 #include "common.h"
+#include "wic.h"
 #include "ifsjpeglicm.h"
 #include "lib/jpegli/decode.h"
 
@@ -133,109 +133,130 @@ int GetPictureEx(LPCWSTR file_name, const LPBYTE data, size_t size, HANDLE* pHBI
         longjmp(jerr.setjmp_buffer, SPI_OUT_OF_ORDER);
     }
 
-    cinfo.out_color_space = JCS_EXT_BGRA;
-
-    if (!jpegli_start_decompress(&cinfo))
+    // CMYK/YCCK
+    if (cinfo.out_color_space == JCS_CMYK)
     {
-        longjmp(jerr.setjmp_buffer, SPI_OUT_OF_ORDER);
-    }
+        jpegli_destroy_decompress(&cinfo);
 
-    LONG width = cinfo.output_width;
-    LONG height = cinfo.output_height;
-    DWORD stride = width * 4;
-    size_t bitmap_size = static_cast<size_t>(height) * stride;
+        auto decoder = std::make_unique<SpiWic>();
 
-    // Get the ICC Profile
-    bool got_icc_profile = false;
-    JOCTET* profile_data = NULL;
-    UINT profile_size = 0;
-
-    if (jpegli_read_icc_profile(&cinfo, &profile_data, &profile_size))
-    {
-        h_bitmap_info = std::unique_ptr<HANDLE, PictureHandleDeleter>(
-            LocalAlloc(LMEM_MOVEABLE | LMEM_ZEROINIT, sizeof(BITMAPV5HEADER) + profile_size), PictureHandleDeleter()
-        );
-        if (!h_bitmap_info)
+        if (int e = decoder->Decode(data, size, h_bitmap_info, h_bitmap) != SPI_ALL_RIGHT)
         {
-            free(profile_data);
-            longjmp(jerr.setjmp_buffer, SPI_NO_MEMORY);
+            return e;
         }
 
-        LPBITMAPV5HEADER v5 = reinterpret_cast<LPBITMAPV5HEADER>(LocalLock(h_bitmap_info.get()));
-        if (!v5)
+        if (!h_bitmap_info || !h_bitmap)
         {
+            return SPI_OTHER_ERROR;
+        }
+    }
+    // Not CMYK/YCCK
+    else
+    {
+        cinfo.out_color_space = JCS_EXT_BGRA;
+
+        if (!jpegli_start_decompress(&cinfo))
+        {
+            longjmp(jerr.setjmp_buffer, SPI_OUT_OF_ORDER);
+        }
+
+        LONG width = cinfo.output_width;
+        LONG height = cinfo.output_height;
+        DWORD stride = width * 4;
+        size_t bitmap_size = static_cast<size_t>(height) * stride;
+
+        // Get the ICC Profile
+        bool got_icc_profile = false;
+        JOCTET* profile_data = NULL;
+        UINT profile_size = 0;
+
+        if (jpegli_read_icc_profile(&cinfo, &profile_data, &profile_size))
+        {
+            h_bitmap_info = std::unique_ptr<HANDLE, PictureHandleDeleter>(
+                LocalAlloc(LMEM_MOVEABLE | LMEM_ZEROINIT, sizeof(BITMAPV5HEADER) + profile_size), PictureHandleDeleter()
+            );
+            if (!h_bitmap_info)
+            {
+                free(profile_data);
+                longjmp(jerr.setjmp_buffer, SPI_NO_MEMORY);
+            }
+
+            LPBITMAPV5HEADER v5 = reinterpret_cast<LPBITMAPV5HEADER>(LocalLock(h_bitmap_info.get()));
+            if (!v5)
+            {
+                free(profile_data);
+                longjmp(jerr.setjmp_buffer, SPI_MEMORY_ERROR);
+            }
+
+            v5->bV5Size = sizeof(BITMAPV5HEADER);
+            v5->bV5CSType = PROFILE_EMBEDDED;
+            v5->bV5ProfileData = sizeof(BITMAPV5HEADER);
+            v5->bV5ProfileSize = profile_size;
+            memcpy(reinterpret_cast<LPBYTE>(v5) + v5->bV5ProfileData, profile_data, v5->bV5ProfileSize);
             free(profile_data);
+            got_icc_profile = true;
+
+            LocalUnlock(h_bitmap_info.get());
+        }
+
+        if (!got_icc_profile)
+        {
+            h_bitmap_info = std::unique_ptr<HANDLE, PictureHandleDeleter>(
+                LocalAlloc(LMEM_MOVEABLE | LMEM_ZEROINIT, sizeof(BITMAPINFO)), PictureHandleDeleter()
+            );
+            if (!h_bitmap_info)
+            {
+                longjmp(jerr.setjmp_buffer, SPI_NO_MEMORY);
+            }
+        }
+
+        bitmap_header = reinterpret_cast<LPBITMAPINFOHEADER>(LocalLock(h_bitmap_info.get()));
+        if (!bitmap_header)
+        {
             longjmp(jerr.setjmp_buffer, SPI_MEMORY_ERROR);
         }
 
-        v5->bV5Size = sizeof(BITMAPV5HEADER);
-        v5->bV5CSType = PROFILE_EMBEDDED;
-        v5->bV5ProfileData = sizeof(BITMAPV5HEADER);
-        v5->bV5ProfileSize = profile_size;
-        memcpy(reinterpret_cast<LPBYTE>(v5) + v5->bV5ProfileData, profile_data, v5->bV5ProfileSize);
-        free(profile_data);
-        got_icc_profile = true;
+        if (!got_icc_profile)
+        {
+            bitmap_header->biSize = sizeof(BITMAPINFOHEADER);
+        }
+        bitmap_header->biWidth = width;
+        bitmap_header->biHeight = height;
+        bitmap_header->biPlanes = 1;
+        bitmap_header->biBitCount = 32;
+        bitmap_header->biSizeImage = static_cast<DWORD>(bitmap_size);
+        bitmap_header->biXPelsPerMeter = static_cast<LONG>(cinfo.X_density * 39.37);
+        bitmap_header->biYPelsPerMeter = static_cast<LONG>(cinfo.Y_density * 39.37);
 
-        LocalUnlock(h_bitmap_info.get());
-    }
-
-    if (!got_icc_profile)
-    {
-        h_bitmap_info = std::unique_ptr<HANDLE, PictureHandleDeleter>(
-            LocalAlloc(LMEM_MOVEABLE | LMEM_ZEROINIT, sizeof(BITMAPINFO)), PictureHandleDeleter()
+        // Decode the image
+        h_bitmap = std::unique_ptr<HANDLE, PictureHandleDeleter>(
+            LocalAlloc(LMEM_MOVEABLE, bitmap_size), PictureHandleDeleter()
         );
-        if (!h_bitmap_info)
+        if (!h_bitmap)
         {
             longjmp(jerr.setjmp_buffer, SPI_NO_MEMORY);
         }
-    }
+        bitmap = reinterpret_cast<LPBYTE>(LocalLock(h_bitmap.get()));
+        if (!bitmap)
+        {
+            longjmp(jerr.setjmp_buffer, SPI_MEMORY_ERROR);
+        }
 
-    bitmap_header = reinterpret_cast<LPBITMAPINFOHEADER>(LocalLock(h_bitmap_info.get()));
-    if (!bitmap_header)
-    {
-        longjmp(jerr.setjmp_buffer, SPI_MEMORY_ERROR);
-    }
+        auto ptr = std::make_unique<JSAMPROW[]>(height);
 
-    if (!got_icc_profile)
-    {
-        bitmap_header->biSize = sizeof(BITMAPINFOHEADER);
-    }
-    bitmap_header->biWidth = width;
-    bitmap_header->biHeight = height;
-    bitmap_header->biPlanes = 1;
-    bitmap_header->biBitCount = 32;
-    bitmap_header->biSizeImage = static_cast<DWORD>(bitmap_size);
-    bitmap_header->biXPelsPerMeter = static_cast<LONG>(cinfo.X_density * 39.37);
-    bitmap_header->biYPelsPerMeter = static_cast<LONG>(cinfo.Y_density * 39.37);
+        for (LONG j = 0; j < height; j++)
+        {
+            ptr[j] = bitmap + (height - j - 1) * stride;
+        }
 
-    // Decode the image
-    h_bitmap = std::unique_ptr<HANDLE, PictureHandleDeleter>(
-        LocalAlloc(LMEM_MOVEABLE, bitmap_size), PictureHandleDeleter()
-    );
-    if (!h_bitmap)
-    {
-        longjmp(jerr.setjmp_buffer, SPI_NO_MEMORY);
-    }
-    bitmap = reinterpret_cast<LPBYTE>(LocalLock(h_bitmap.get()));
-    if (!bitmap)
-    {
-        longjmp(jerr.setjmp_buffer, SPI_MEMORY_ERROR);
-    }
+        while (cinfo.output_scanline < cinfo.output_height)
+        {
+            jpegli_read_scanlines(&cinfo, &ptr[cinfo.output_scanline], cinfo.output_height - cinfo.output_scanline);
+        }
 
-    auto ptr = std::make_unique<JSAMPROW[]>(height);
-
-    for (LONG j = 0; j < height; j++)
-    {
-        ptr[j] = bitmap + (height - j - 1) * stride;
+        jpegli_finish_decompress(&cinfo);
+        jpegli_destroy_decompress(&cinfo);
     }
-
-    while (cinfo.output_scanline < cinfo.output_height)
-    {
-        jpegli_read_scanlines(&cinfo, &ptr[cinfo.output_scanline], cinfo.output_height - cinfo.output_scanline);
-    }
-
-    jpegli_finish_decompress(&cinfo);
-    jpegli_destroy_decompress(&cinfo);
 
     LocalUnlock(h_bitmap.get());
     LocalUnlock(h_bitmap_info.get());

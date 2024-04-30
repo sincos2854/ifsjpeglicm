@@ -23,10 +23,12 @@
     <ClInclude Include="ifsjpeglicm.h" />
     <ClInclude Include="spi00in.h" />
     <ClInclude Include="version.h" />
+    <ClInclude Include="wic.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ifsjpeglicm.cpp" />
     <ClCompile Include="spi00in.cpp" />
+    <ClCompile Include="wic.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>
@@ -117,7 +119,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
       <AdditionalLibraryDirectories>lib\$(Platform)\$(Configuration)\</AdditionalLibraryDirectories>
-      <AdditionalDependencies>$(CoreLibraryDependencies);%(AdditionalDependencies);hwy.lib;jpegli-static.lib</AdditionalDependencies>
+      <AdditionalDependencies>$(CoreLibraryDependencies);%(AdditionalDependencies);hwy.lib;jpegli-static.lib;windowscodecs.lib</AdditionalDependencies>
       <ModuleDefinitionFile>spi00in.def</ModuleDefinitionFile>
     </Link>
   </ItemDefinitionGroup>
@@ -142,7 +144,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
       <AdditionalLibraryDirectories>lib\$(Platform)\$(Configuration)\</AdditionalLibraryDirectories>
-      <AdditionalDependencies>$(CoreLibraryDependencies);%(AdditionalDependencies);hwy.lib;jpegli-static.lib</AdditionalDependencies>
+      <AdditionalDependencies>$(CoreLibraryDependencies);%(AdditionalDependencies);hwy.lib;jpegli-static.lib;windowscodecs.lib</AdditionalDependencies>
       <ModuleDefinitionFile>spi00in.def</ModuleDefinitionFile>
     </Link>
   </ItemDefinitionGroup>
@@ -163,7 +165,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
       <AdditionalLibraryDirectories>lib\$(Platform)\$(Configuration)\</AdditionalLibraryDirectories>
-      <AdditionalDependencies>$(CoreLibraryDependencies);%(AdditionalDependencies);hwy.lib;jpegli-static.lib</AdditionalDependencies>
+      <AdditionalDependencies>$(CoreLibraryDependencies);%(AdditionalDependencies);hwy.lib;jpegli-static.lib;windowscodecs.lib</AdditionalDependencies>
       <ModuleDefinitionFile>spi00in.def</ModuleDefinitionFile>
     </Link>
   </ItemDefinitionGroup>
@@ -188,7 +190,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
       <AdditionalLibraryDirectories>lib\$(Platform)\$(Configuration)\</AdditionalLibraryDirectories>
-      <AdditionalDependencies>$(CoreLibraryDependencies);%(AdditionalDependencies);hwy.lib;jpegli-static.lib</AdditionalDependencies>
+      <AdditionalDependencies>$(CoreLibraryDependencies);%(AdditionalDependencies);hwy.lib;jpegli-static.lib;windowscodecs.lib</AdditionalDependencies>
       <ModuleDefinitionFile>spi00in.def</ModuleDefinitionFile>
     </Link>
   </ItemDefinitionGroup>
