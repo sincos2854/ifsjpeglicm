@@ -3,4 +3,4 @@
 
 #pragma once
 
-#define PROJECT_VERSION L"0.2.1"
+#define PROJECT_VERSION L"0.2.2"
