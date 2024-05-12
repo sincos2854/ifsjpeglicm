@@ -106,7 +106,7 @@ int SpiWic::Decode(
 
         hr = pColorContext->GetProfileBytes(0, NULL, &profile_size);
 
-        if (profile_size)
+        if (0 < profile_size)
         {
             h_bitmap_info = std::unique_ptr<HANDLE, PictureHandleDeleter>(
                 LocalAlloc(LMEM_MOVEABLE | LMEM_ZEROINIT, sizeof(BITMAPV5HEADER) + profile_size), PictureHandleDeleter()

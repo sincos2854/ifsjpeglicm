@@ -165,40 +165,41 @@ int GetPictureEx(LPCWSTR file_name, const LPBYTE data, size_t size, HANDLE* pHBI
         size_t bitmap_size = static_cast<size_t>(height) * stride;
 
         // Get the ICC Profile
-        bool got_icc_profile = false;
         JOCTET* profile_data = NULL;
         UINT profile_size = 0;
 
         if (jpegli_read_icc_profile(&cinfo, &profile_data, &profile_size))
         {
-            h_bitmap_info = std::unique_ptr<HANDLE, PictureHandleDeleter>(
-                LocalAlloc(LMEM_MOVEABLE | LMEM_ZEROINIT, sizeof(BITMAPV5HEADER) + profile_size), PictureHandleDeleter()
-            );
-            if (!h_bitmap_info)
+            if (0 < profile_size)
             {
+                h_bitmap_info = std::unique_ptr<HANDLE, PictureHandleDeleter>(
+                    LocalAlloc(LMEM_MOVEABLE | LMEM_ZEROINIT, sizeof(BITMAPV5HEADER) + profile_size), PictureHandleDeleter()
+                );
+                if (!h_bitmap_info)
+                {
+                    free(profile_data);
+                    longjmp(jerr.setjmp_buffer, SPI_NO_MEMORY);
+                }
+
+                LPBITMAPV5HEADER v5 = reinterpret_cast<LPBITMAPV5HEADER>(LocalLock(h_bitmap_info.get()));
+                if (!v5)
+                {
+                    free(profile_data);
+                    longjmp(jerr.setjmp_buffer, SPI_MEMORY_ERROR);
+                }
+
+                v5->bV5Size = sizeof(BITMAPV5HEADER);
+                v5->bV5CSType = PROFILE_EMBEDDED;
+                v5->bV5ProfileData = sizeof(BITMAPV5HEADER);
+                v5->bV5ProfileSize = profile_size;
+                memcpy(reinterpret_cast<LPBYTE>(v5) + v5->bV5ProfileData, profile_data, v5->bV5ProfileSize);
                 free(profile_data);
-                longjmp(jerr.setjmp_buffer, SPI_NO_MEMORY);
+
+                LocalUnlock(h_bitmap_info.get());
             }
-
-            LPBITMAPV5HEADER v5 = reinterpret_cast<LPBITMAPV5HEADER>(LocalLock(h_bitmap_info.get()));
-            if (!v5)
-            {
-                free(profile_data);
-                longjmp(jerr.setjmp_buffer, SPI_MEMORY_ERROR);
-            }
-
-            v5->bV5Size = sizeof(BITMAPV5HEADER);
-            v5->bV5CSType = PROFILE_EMBEDDED;
-            v5->bV5ProfileData = sizeof(BITMAPV5HEADER);
-            v5->bV5ProfileSize = profile_size;
-            memcpy(reinterpret_cast<LPBYTE>(v5) + v5->bV5ProfileData, profile_data, v5->bV5ProfileSize);
-            free(profile_data);
-            got_icc_profile = true;
-
-            LocalUnlock(h_bitmap_info.get());
         }
 
-        if (!got_icc_profile)
+        if (profile_size == 0)
         {
             h_bitmap_info = std::unique_ptr<HANDLE, PictureHandleDeleter>(
                 LocalAlloc(LMEM_MOVEABLE | LMEM_ZEROINIT, sizeof(BITMAPINFO)), PictureHandleDeleter()
@@ -215,7 +216,7 @@ int GetPictureEx(LPCWSTR file_name, const LPBYTE data, size_t size, HANDLE* pHBI
             longjmp(jerr.setjmp_buffer, SPI_MEMORY_ERROR);
         }
 
-        if (!got_icc_profile)
+        if (profile_size == 0)
         {
             bitmap_header->biSize = sizeof(BITMAPINFOHEADER);
         }
