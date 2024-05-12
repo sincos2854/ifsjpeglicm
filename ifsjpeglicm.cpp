@@ -1,7 +1,6 @@
 // Copyright (c) 2024 sincos2854
 // Licensed under the MIT License
 
-#include <string>
 #include "common.h"
 #include "wic.h"
 #include "ifsjpeglicm.h"

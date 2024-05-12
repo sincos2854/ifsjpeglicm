@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <string>
 #include "spi00in.h"
 #include "version.h"
 
