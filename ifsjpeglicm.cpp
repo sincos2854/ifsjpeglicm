@@ -258,6 +258,14 @@ int GetPictureEx(LPCWSTR file_name, const LPBYTE data, size_t size, HANDLE* pHBI
         jpegli_destroy_decompress(&cinfo);
     }
 
+    if (lpPrgressCallback)
+    {
+        if (lpPrgressCallback(100, 100, lData))
+        {
+            return SPI_ABORT;
+        }
+    }
+
     LocalUnlock(h_bitmap.get());
     LocalUnlock(h_bitmap_info.get());
 
@@ -266,14 +274,6 @@ int GetPictureEx(LPCWSTR file_name, const LPBYTE data, size_t size, HANDLE* pHBI
 
     h_bitmap_info.release();
     h_bitmap.release();
-
-    if (lpPrgressCallback)
-    {
-        if (lpPrgressCallback(100, 100, lData))
-        {
-            return SPI_ABORT;
-        }
-    }
 
     return SPI_ALL_RIGHT;
 }
