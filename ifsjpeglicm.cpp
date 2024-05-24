@@ -124,7 +124,7 @@ int GetPictureEx(LPCWSTR file_name, const LPBYTE data, size_t size, HANDLE* pHBI
     jpegli_create_decompress(&cinfo);
     jpegli_mem_src(&cinfo, data, static_cast<unsigned long>(size));
 
-    // Required to get the ICC Profile
+    // Required to get an ICC Profile
     jpegli_save_markers(&cinfo, JPEG_APP0 + 2, 0xFFFF);
 
     if (jpegli_read_header(&cinfo, TRUE) == JPEG_SUSPENDED)
@@ -164,11 +164,11 @@ int GetPictureEx(LPCWSTR file_name, const LPBYTE data, size_t size, HANDLE* pHBI
         DWORD stride = width * 4;
         size_t bitmap_size = static_cast<size_t>(height) * stride;
 
-        // Get the ICC Profile
-        JOCTET* profile_data = NULL;
+        // Get an ICC Profile
+        std::unique_ptr<JOCTET, IccProfileDeleter> profile_data;
         UINT profile_size = 0;
 
-        if (jpegli_read_icc_profile(&cinfo, &profile_data, &profile_size))
+        if (jpegli_read_icc_profile(&cinfo, std::out_ptr(profile_data), &profile_size))
         {
             if (0 < profile_size)
             {
@@ -177,14 +177,12 @@ int GetPictureEx(LPCWSTR file_name, const LPBYTE data, size_t size, HANDLE* pHBI
                 );
                 if (!h_bitmap_info)
                 {
-                    free(profile_data);
                     longjmp(jerr.setjmp_buffer, SPI_NO_MEMORY);
                 }
 
                 LPBITMAPV5HEADER v5 = reinterpret_cast<LPBITMAPV5HEADER>(LocalLock(h_bitmap_info.get()));
                 if (!v5)
                 {
-                    free(profile_data);
                     longjmp(jerr.setjmp_buffer, SPI_MEMORY_ERROR);
                 }
 
@@ -192,8 +190,7 @@ int GetPictureEx(LPCWSTR file_name, const LPBYTE data, size_t size, HANDLE* pHBI
                 v5->bV5CSType = PROFILE_EMBEDDED;
                 v5->bV5ProfileData = sizeof(BITMAPV5HEADER);
                 v5->bV5ProfileSize = profile_size;
-                memcpy(reinterpret_cast<LPBYTE>(v5) + v5->bV5ProfileData, profile_data, v5->bV5ProfileSize);
-                free(profile_data);
+                memcpy(reinterpret_cast<LPBYTE>(v5) + v5->bV5ProfileData, profile_data.get(), v5->bV5ProfileSize);
 
                 LocalUnlock(h_bitmap_info.get());
             }

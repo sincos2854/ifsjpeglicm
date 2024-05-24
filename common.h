@@ -4,6 +4,7 @@
 #pragma once
 
 #include <windows.h>
+#include "lib/jpegli/decode.h"
 
 struct FileHandleDeleter
 {
@@ -24,5 +25,13 @@ struct PictureHandleDeleter
     {
         LocalUnlock(handle);
         LocalFree(handle);
+    }
+};
+
+struct IccProfileDeleter
+{
+    void operator()(JOCTET* profile_data)
+    {
+        free(profile_data);
     }
 };
