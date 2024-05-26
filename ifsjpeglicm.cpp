@@ -124,7 +124,7 @@ int GetPictureEx(LPCWSTR file_name, const LPBYTE data, size_t size, HANDLE* pHBI
     jpegli_create_decompress(&cinfo);
     jpegli_mem_src(&cinfo, data, static_cast<unsigned long>(size));
 
-    // Required to get an ICC Profile
+    // Required to get the ICC Profile
     jpegli_save_markers(&cinfo, JPEG_APP0 + 2, 0xFFFF);
 
     if (jpegli_read_header(&cinfo, TRUE) == JPEG_SUSPENDED)
@@ -164,7 +164,7 @@ int GetPictureEx(LPCWSTR file_name, const LPBYTE data, size_t size, HANDLE* pHBI
         DWORD stride = width * 4;
         size_t bitmap_size = static_cast<size_t>(height) * stride;
 
-        // Get an ICC Profile
+        // Get the ICC Profile
         std::unique_ptr<JOCTET, IccProfileDeleter> profile_data;
         UINT profile_size = 0;
 
