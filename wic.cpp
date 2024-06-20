@@ -32,7 +32,6 @@ int SpiWic::Decode(
     if (hr == CO_E_NOTINITIALIZED)
     {
         hr = CoInitializeEx(NULL, COINIT_MULTITHREADED | COINIT_DISABLE_OLE1DDE);
-        if (FAILED(hr)) return SPI_OTHER_ERROR;
 
         if (hr == S_OK)
         {
@@ -41,6 +40,10 @@ int SpiWic::Decode(
         else if (hr == S_FALSE)
         {
             CoUninitialize();
+        }
+        else
+        {
+            if (FAILED(hr)) return SPI_OTHER_ERROR;
         }
 
         hr = CoCreateInstance(
