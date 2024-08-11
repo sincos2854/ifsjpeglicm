@@ -3,7 +3,7 @@ cd /d "%~dp0"
 
 call build_checkout_jpegli.cmd
 
-cd libjxl
+cd jpegli
 
 cmake -G "Visual Studio 17 2022" -A Win32 ^
 -B "build_Win32_release" ^
@@ -35,20 +35,20 @@ cmake --build "build_x64_release" --config Release --target install
 
 cd ..\
 
-xcopy /y libjxl\build_Win32_release\lib\include\jpegli\*.h include\Win32\
-xcopy /y libjxl\lib\jpegli\common.h include\Win32\lib\jpegli\
-xcopy /y libjxl\lib\jpegli\decode.h include\Win32\lib\jpegli\
-xcopy /y libjxl\lib\jpegli\types.h include\Win32\lib\jpegli\
-xcopy /y libjxl\lib\jxl\base\include_jpeglib.h include\Win32\lib\jxl\base\
+xcopy /y jpegli\build_Win32_release\lib\include\jpegli\*.h include\Win32\
+xcopy /y jpegli\lib\jpegli\common.h include\Win32\lib\jpegli\
+xcopy /y jpegli\lib\jpegli\decode.h include\Win32\lib\jpegli\
+xcopy /y jpegli\lib\jpegli\types.h include\Win32\lib\jpegli\
+xcopy /y jpegli\lib\base\include_jpeglib.h include\Win32\lib\base\
 
-xcopy /y libjxl\build_Win32_release\third_party\highway\Release\hwy.lib lib\Win32\Release\
-xcopy /y libjxl\build_Win32_release\lib\Release\jpegli-static.lib lib\Win32\Release\
+xcopy /y jpegli\build_Win32_release\third_party\highway\Release\hwy.lib lib\Win32\Release\
+xcopy /y jpegli\build_Win32_release\lib\Release\jpegli-static.lib lib\Win32\Release\
 
-xcopy /y libjxl\build_x64_release\lib\include\jpegli\*.h include\x64\
-xcopy /y libjxl\lib\jpegli\common.h include\x64\lib\jpegli\
-xcopy /y libjxl\lib\jpegli\decode.h include\x64\lib\jpegli\
-xcopy /y libjxl\lib\jpegli\types.h include\x64\lib\jpegli\
-xcopy /y libjxl\lib\jxl\base\include_jpeglib.h include\x64\lib\jxl\base\
+xcopy /y jpegli\build_x64_release\lib\include\jpegli\*.h include\x64\
+xcopy /y jpegli\lib\jpegli\common.h include\x64\lib\jpegli\
+xcopy /y jpegli\lib\jpegli\decode.h include\x64\lib\jpegli\
+xcopy /y jpegli\lib\jpegli\types.h include\x64\lib\jpegli\
+xcopy /y jpegli\lib\base\include_jpeglib.h include\x64\lib\base\
 
-xcopy /y libjxl\build_x64_release\third_party\highway\Release\hwy.lib lib\x64\Release\
-xcopy /y libjxl\build_x64_release\lib\Release\jpegli-static.lib lib\x64\Release\
+xcopy /y jpegli\build_x64_release\third_party\highway\Release\hwy.lib lib\x64\Release\
+xcopy /y jpegli\build_x64_release\lib\Release\jpegli-static.lib lib\x64\Release\

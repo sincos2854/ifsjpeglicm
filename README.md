@@ -1,6 +1,6 @@
 # ifsjpeglicm
 
-[Jpegli](https://github.com/libjxl/libjxl/tree/main/lib/jpegli) Susie Plug-in for JPEG(*.jpeg, *jpg) files.  
+[Jpegli](https://github.com/google/jpegli) Susie Plug-in for JPEG(*.jpeg, *jpg) files.  
 Google's announcement : [Introducing Jpegli: A New JPEG Coding Library | Google Open Source Blog](https://opensource.googleblog.com/2024/04/introducing-jpegli-new-jpeg-coding-library.html)  
 (Use WIC(Windows Imaging Component) for CMYK/YCCK JPEG files.)
 

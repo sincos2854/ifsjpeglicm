@@ -1,10 +1,10 @@
 @echo off
 cd /d "%~dp0"
 
-if not exist "libjxl" (
-    git clone https://github.com/libjxl/libjxl.git --recursive
-    cd libjxl
-    git checkout f602da19370166f75f1e7e175db890e8cd480c19
+if not exist "jpegli" (
+    git clone https://github.com/google/jpegli.git --recursive
+    cd jpegli
+    git checkout 8a4c6dce4793e0011ba34e6768feaab43ed46178
     cd third_party\libjpeg-turbo
     git fetch origin main
     git checkout refs/tags/2.1.91
