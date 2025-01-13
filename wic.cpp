@@ -92,6 +92,7 @@ int SpiWic::Decode(
     hr = pFrameDecode->GetResolution(&dpi_x, &dpi_y);
     if (FAILED(hr)) return SPI_OTHER_ERROR;
 
+#if 0
     UINT count = 0;
 
     hr = pFrameDecode->GetColorContexts(0, NULL, &count);
@@ -141,6 +142,7 @@ int SpiWic::Decode(
             }
         }
     }
+#endif
 
     if (profile_size == 0)
     {
