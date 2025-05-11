@@ -11,8 +11,8 @@ using namespace Microsoft::WRL;
 int SpiWic::Decode(
     const LPBYTE data,
     size_t size,
-    std::unique_ptr<HANDLE, PictureHandleDeleter>& h_bitmap_info,
-    std::unique_ptr<HANDLE, PictureHandleDeleter>& h_bitmap
+    PictureHandle& h_bitmap_info,
+    PictureHandle& h_bitmap
 )
 {
     LPBITMAPINFOHEADER bitmap_header = nullptr;
@@ -120,8 +120,8 @@ int SpiWic::Decode(
 
             if (0 < profile_size)
             {
-                h_bitmap_info = std::unique_ptr<HANDLE, PictureHandleDeleter>(
-                    LocalAlloc(LMEM_MOVEABLE | LMEM_ZEROINIT, sizeof(BITMAPV5HEADER) + profile_size), PictureHandleDeleter()
+                h_bitmap_info = PictureHandle(
+                    LocalAlloc(LMEM_MOVEABLE | LMEM_ZEROINIT, sizeof(BITMAPV5HEADER) + profile_size)
                 );
                 if (!h_bitmap_info) return SPI_NO_MEMORY;
 
@@ -146,8 +146,8 @@ int SpiWic::Decode(
 
     if (profile_size == 0)
     {
-        h_bitmap_info = std::unique_ptr<HANDLE, PictureHandleDeleter>(
-            LocalAlloc(LMEM_MOVEABLE | LMEM_ZEROINIT, sizeof(BITMAPINFO)), PictureHandleDeleter()
+        h_bitmap_info = PictureHandle(
+            LocalAlloc(LMEM_MOVEABLE | LMEM_ZEROINIT, sizeof(BITMAPINFO))
         );
         if (!h_bitmap_info) return SPI_NO_MEMORY;
     }
@@ -183,8 +183,8 @@ int SpiWic::Decode(
     );
     if (FAILED(hr)) return SPI_OTHER_ERROR;
 
-    h_bitmap = std::unique_ptr<HANDLE, PictureHandleDeleter>(
-        LocalAlloc(LMEM_MOVEABLE, bitmap_size), PictureHandleDeleter()
+    h_bitmap = PictureHandle(
+        LocalAlloc(LMEM_MOVEABLE, bitmap_size)
     );
     if (!h_bitmap) return SPI_NO_MEMORY;
 

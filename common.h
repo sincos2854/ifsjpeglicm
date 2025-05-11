@@ -3,12 +3,13 @@
 
 #pragma once
 
+#define NOMINMAX
 #include <windows.h>
+#include <memory>
 #include "lib/jpegli/decode.h"
 
 struct FileHandleDeleter
 {
-    using pointer = HANDLE;
     void operator()(HANDLE handle)
     {
         if (handle != INVALID_HANDLE_VALUE)
@@ -18,15 +19,18 @@ struct FileHandleDeleter
     }
 };
 
+using FileHandle = std::unique_ptr<std::remove_pointer<HANDLE>::type, FileHandleDeleter>;
+
 struct PictureHandleDeleter
 {
-    using pointer = HANDLE;
     void operator()(HANDLE handle)
     {
         LocalUnlock(handle);
         LocalFree(handle);
     }
 };
+
+using PictureHandle = std::unique_ptr<std::remove_pointer<HANDLE>::type, PictureHandleDeleter>;
 
 struct IccProfileDeleter
 {

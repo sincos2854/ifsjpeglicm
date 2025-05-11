@@ -106,8 +106,8 @@ int GetPictureEx(LPCWSTR file_name, const LPBYTE data, size_t size, HANDLE* pHBI
         }
     }
 
-    std::unique_ptr<HANDLE, PictureHandleDeleter> h_bitmap_info;
-    std::unique_ptr<HANDLE, PictureHandleDeleter> h_bitmap;
+    PictureHandle h_bitmap_info;
+    PictureHandle h_bitmap;
     LPBITMAPINFOHEADER bitmap_header = nullptr;
     LPBYTE bitmap = nullptr;
 
@@ -174,8 +174,8 @@ int GetPictureEx(LPCWSTR file_name, const LPBYTE data, size_t size, HANDLE* pHBI
         {
             if (0 < profile_size)
             {
-                h_bitmap_info = std::unique_ptr<HANDLE, PictureHandleDeleter>(
-                    LocalAlloc(LMEM_MOVEABLE | LMEM_ZEROINIT, sizeof(BITMAPV5HEADER) + profile_size), PictureHandleDeleter()
+                h_bitmap_info = PictureHandle(
+                    LocalAlloc(LMEM_MOVEABLE | LMEM_ZEROINIT, sizeof(BITMAPV5HEADER) + profile_size)
                 );
                 if (!h_bitmap_info)
                 {
@@ -200,8 +200,8 @@ int GetPictureEx(LPCWSTR file_name, const LPBYTE data, size_t size, HANDLE* pHBI
 
         if (profile_size == 0)
         {
-            h_bitmap_info = std::unique_ptr<HANDLE, PictureHandleDeleter>(
-                LocalAlloc(LMEM_MOVEABLE | LMEM_ZEROINIT, sizeof(BITMAPINFO)), PictureHandleDeleter()
+            h_bitmap_info = PictureHandle(
+                LocalAlloc(LMEM_MOVEABLE | LMEM_ZEROINIT, sizeof(BITMAPINFO))
             );
             if (!h_bitmap_info)
             {
@@ -228,8 +228,8 @@ int GetPictureEx(LPCWSTR file_name, const LPBYTE data, size_t size, HANDLE* pHBI
         bitmap_header->biYPelsPerMeter = static_cast<LONG>(cinfo.Y_density * 39.37);
 
         // Decode the image
-        h_bitmap = std::unique_ptr<HANDLE, PictureHandleDeleter>(
-            LocalAlloc(LMEM_MOVEABLE, bitmap_size), PictureHandleDeleter()
+        h_bitmap = PictureHandle(
+            LocalAlloc(LMEM_MOVEABLE, bitmap_size)
         );
         if (!h_bitmap)
         {
