@@ -1,4 +1,4 @@
-// Copyright (c) 2024 sincos2854
+// Copyright (c) 2024 - 2025 sincos2854
 // Licensed under the MIT License
 
 #pragma once
@@ -7,7 +7,7 @@
 #include "spi00in.h"
 #include "version.h"
 
-#define COPYRIGHT L"Jpegli Susie Plug-in Ver." PROJECT_VERSION L" (c) 2024 sincos2854"
+#define COPYRIGHT L"Jpegli Susie Plug-in Ver." PROJECT_VERSION L" (c) 2024 - 2025 sincos2854"
 
 #define EXTENSION1 L".jpeg"
 #define EXTENSION2 L".jpg"

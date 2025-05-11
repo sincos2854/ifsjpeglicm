@@ -1,4 +1,4 @@
-// Copyright (c) 2024 sincos2854
+// Copyright (c) 2024 - 2025 sincos2854
 // Licensed under the MIT License
 
 #include <string>
