@@ -5,7 +5,7 @@
 #include "common.h"
 #include "ifsjpeglicm.h"
 
-#define BUF_SIZE_HEADER 2048
+constexpr size_t BUF_SIZE_HEADER = 2048;
 
 int UnicodeToAnsi(LPCWSTR unicode, LPSTR ansi, int size)
 {
