@@ -9,7 +9,7 @@
 using namespace Microsoft::WRL;
 
 int SpiWic::Decode(
-    const LPBYTE data,
+    const BYTE* data,
     size_t size,
     PictureHandle& h_bitmap_info,
     PictureHandle& h_bitmap
@@ -61,7 +61,7 @@ int SpiWic::Decode(
     hr = pFactory->CreateStream(pStream.GetAddressOf());
     if (FAILED(hr)) return SPI_OTHER_ERROR;
 
-    hr = pStream->InitializeFromMemory(data, static_cast<DWORD>(size));
+    hr = pStream->InitializeFromMemory(const_cast<LPBYTE>(data), static_cast<DWORD>(size));
     if (FAILED(hr)) return SPI_OTHER_ERROR;
 
     ComPtr<IWICBitmapDecoder> pDecoder;

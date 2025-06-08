@@ -11,7 +11,7 @@ public:
     ~SpiWic() { if (initialized_) CoUninitialize(); }
 
     int Decode(
-        const LPBYTE data,
+        const BYTE* data,
         size_t size,
         PictureHandle& h_bitmap_info,
         PictureHandle& h_bitmap
