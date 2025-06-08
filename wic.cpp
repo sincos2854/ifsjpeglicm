@@ -92,58 +92,6 @@ int SpiWic::Decode(
     hr = pFrameDecode->GetResolution(&dpi_x, &dpi_y);
     if (FAILED(hr)) return SPI_OTHER_ERROR;
 
-#if 0
-    UINT count = 0;
-
-    hr = pFrameDecode->GetColorContexts(0, NULL, &count);
-    if (FAILED(hr)) return SPI_OTHER_ERROR;
-
-    if (count)
-    {
-        ComPtr<IWICColorContext> pColorContext;
-
-        hr = pFactory->CreateColorContext(pColorContext.GetAddressOf());
-        if (FAILED(hr)) return SPI_OTHER_ERROR;
-
-        hr = pFrameDecode->GetColorContexts(1, pColorContext.GetAddressOf(), &count);
-        if (FAILED(hr)) return SPI_OTHER_ERROR;
-
-        WICColorContextType type = WICColorContextUninitialized;
-
-        hr = pColorContext->GetType(&type);
-        if (FAILED(hr)) return SPI_OTHER_ERROR;
-
-        if (type == WICColorContextProfile) {
-
-            hr = pColorContext->GetProfileBytes(0, NULL, &profile_size);
-            if (FAILED(hr)) return SPI_OTHER_ERROR;
-
-            if (0 < profile_size)
-            {
-                h_bitmap_info = PictureHandle(
-                    LocalAlloc(LMEM_MOVEABLE | LMEM_ZEROINIT, sizeof(BITMAPV5HEADER) + profile_size)
-                );
-                if (!h_bitmap_info) return SPI_NO_MEMORY;
-
-                LPBITMAPV5HEADER v5 = reinterpret_cast<LPBITMAPV5HEADER>(LocalLock(h_bitmap_info.get()));
-                if (!v5) return SPI_NO_MEMORY;
-
-                v5->bV5Size = sizeof(BITMAPV5HEADER);
-                v5->bV5CSType = PROFILE_EMBEDDED;
-                v5->bV5ProfileData = sizeof(BITMAPV5HEADER);
-                v5->bV5ProfileSize = profile_size;
-
-                UINT r = 0;
-
-                hr = pColorContext->GetProfileBytes(v5->bV5ProfileSize, reinterpret_cast<LPBYTE>(v5) + v5->bV5ProfileData, &r);
-                if (FAILED(hr) || v5->bV5ProfileSize != r) return SPI_OTHER_ERROR;
-
-                LocalUnlock(h_bitmap_info.get());
-            }
-        }
-    }
-#endif
-
     if (profile_size == 0)
     {
         h_bitmap_info = PictureHandle(
