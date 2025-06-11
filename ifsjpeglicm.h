@@ -7,19 +7,15 @@
 #include "spi00in.h"
 #include "version.h"
 
-#define COPYRIGHT L"Jpegli Susie Plug-in Ver." PROJECT_VERSION L" (c) 2024 - 2025 sincos2854"
+constexpr LPCWSTR API_VER = L"00IN";
+constexpr LPCWSTR EXTENSION = L"*.jpeg;*.jpg";
+constexpr LPCWSTR FILE_TYPE = L"JPEG file(*.jpeg;*.jpg)";
 
-#define EXTENSION1 L".jpeg"
-#define EXTENSION2 L".jpg"
-
-#define PLUGIN_INFO3 L"*" EXTENSION1 L";*" EXTENSION2
-#define PLOGIN_INFO4 L"JPEG file(*" EXTENSION1 L";*" EXTENSION2 L")"
-
-static const wchar_t* plugin_info[]{
-    L"00IN",
-    COPYRIGHT,
-    PLUGIN_INFO3,
-    PLOGIN_INFO4,
+constexpr std::wstring_view PLUGIN_INFO[]{
+    API_VER,
+    PLUGIN_NAME,
+    EXTENSION,
+    FILE_TYPE
 };
 
 constexpr size_t HEADER_MIN_SIZE = 3;
