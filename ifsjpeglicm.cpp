@@ -45,7 +45,7 @@ int GetPictureInfoEx(LPCWSTR file_name, const BYTE* data, size_t size, PictureIn
     cinfo.err = jpegli_std_error(&jerr.pub);
     jerr.pub.error_exit = error_exit;
 
-    if (int e = setjmp(jerr.setjmp_buffer) != 0)
+    if (int e = setjmp(jerr.setjmp_buffer); e != 0)
     {
         jpegli_destroy_decompress(&cinfo);
         return e;
@@ -95,7 +95,7 @@ int GetPictureEx(LPCWSTR file_name, const BYTE* data, size_t size, HANDLE* pHBIn
     cinfo.err = jpegli_std_error(&jerr.pub);
     jerr.pub.error_exit = error_exit;
 
-    if (int e = setjmp(jerr.setjmp_buffer) != 0)
+    if (int e = setjmp(jerr.setjmp_buffer); e != 0)
     {
         jpegli_destroy_decompress(&cinfo);
         return e;
@@ -119,7 +119,7 @@ int GetPictureEx(LPCWSTR file_name, const BYTE* data, size_t size, HANDLE* pHBIn
 
         auto decoder = std::make_unique<SpiWic>();
 
-        if (int e = decoder->Decode(data, size, h_bitmap_info, h_bitmap) != SPI_ALL_RIGHT)
+        if (int e = decoder->Decode(data, size, h_bitmap_info, h_bitmap); e != SPI_ALL_RIGHT)
         {
             return e;
         }
