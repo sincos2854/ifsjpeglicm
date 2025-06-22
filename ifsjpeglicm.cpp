@@ -221,7 +221,7 @@ int GetPictureEx(LPCWSTR file_name, const BYTE* data, size_t size, HANDLE* pHBIn
             longjmp(jerr.setjmp_buffer, SPI_MEMORY_ERROR);
         }
 
-        auto ptr = std::make_unique<JSAMPROW[]>(height);
+        auto ptr = std::make_unique_for_overwrite<JSAMPROW[]>(height);
 
         for (LONG j = 0; j < height; j++)
         {

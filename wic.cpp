@@ -143,7 +143,7 @@ int SpiWic::Decode(const BYTE* data, size_t size, PictureHandle& h_bitmap_info, 
 
     // Faster than IWICBitmapFlipRotator
     size_t half_height = static_cast<size_t>(height) / 2;
-    auto line = std::make_unique<BYTE[]>(stride);
+    auto line = std::make_unique_for_overwrite<BYTE[]>(stride);
     for (size_t j = 0; j < half_height; j++)
     {
         memcpy(line.get(), bitmap + stride * j, stride);
