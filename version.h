@@ -6,4 +6,4 @@
 #define NOMINMAX
 #include <windows.h>
 
-constexpr LPCWSTR PLUGIN_NAME = L"Jpegli Susie Plug-in v0.3.11 (c) 2024 - 2025 sincos2854";
+constexpr LPCWSTR PLUGIN_NAME = L"Jpegli Susie Plug-in v0.4.0 (c) 2024 - 2025 sincos2854";
