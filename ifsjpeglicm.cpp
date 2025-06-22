@@ -13,7 +13,7 @@ bool IsSupportedEx(LPCWSTR filename, const BYTE* data)
     }
 
     // Check the file header
-    if (memcmp(data, "\xFF\xD8\xFF", 3) == 0)
+    if (std::memcmp(data, "\xFF\xD8\xFF", 3) == 0)
     {
         return true;
     }
@@ -172,7 +172,7 @@ int GetPictureEx(LPCWSTR file_name, const BYTE* data, size_t size, HANDLE* pHBIn
                 v5->bV5CSType = PROFILE_EMBEDDED;
                 v5->bV5ProfileData = sizeof(BITMAPV5HEADER);
                 v5->bV5ProfileSize = profile_size;
-                memcpy(reinterpret_cast<BYTE*>(v5) + v5->bV5ProfileData, profile_data.get(), v5->bV5ProfileSize);
+                std::memcpy(reinterpret_cast<BYTE*>(v5) + v5->bV5ProfileData, profile_data.get(), v5->bV5ProfileSize);
 
                 LocalUnlock(h_bitmap_info.get());
             }

@@ -146,9 +146,9 @@ int SpiWic::Decode(const BYTE* data, size_t size, PictureHandle& h_bitmap_info, 
     auto line = std::make_unique_for_overwrite<BYTE[]>(stride);
     for (size_t j = 0; j < half_height; j++)
     {
-        memcpy(line.get(), bitmap + stride * j, stride);
-        memcpy(bitmap + stride * j, bitmap + stride * (height - j - 1), stride);
-        memcpy(bitmap + stride * (height - j - 1), line.get(), stride);
+        std::memcpy(line.get(), bitmap + stride * j, stride);
+        std::memcpy(bitmap + stride * j, bitmap + stride * (height - j - 1), stride);
+        std::memcpy(bitmap + stride * (height - j - 1), line.get(), stride);
     }
 
 	return SPI_ALL_RIGHT;
