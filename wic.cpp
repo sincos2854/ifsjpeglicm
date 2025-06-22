@@ -8,12 +8,7 @@
 
 using namespace Microsoft::WRL;
 
-int SpiWic::Decode(
-    const BYTE* data,
-    size_t size,
-    PictureHandle& h_bitmap_info,
-    PictureHandle& h_bitmap
-)
+int SpiWic::Decode(const BYTE* data, size_t size, PictureHandle& h_bitmap_info, PictureHandle& h_bitmap)
 {
     LPBITMAPINFOHEADER bitmap_header = nullptr;
     BYTE* bitmap = nullptr;
@@ -21,7 +16,7 @@ int SpiWic::Decode(
 
     ComPtr<IWICImagingFactory> pFactory;
 
-    HRESULT hr = CoCreateInstance(
+    auto hr = CoCreateInstance(
         CLSID_WICImagingFactory,
         NULL,
         CLSCTX_INPROC_SERVER,
@@ -31,29 +26,33 @@ int SpiWic::Decode(
 
     if (hr == CO_E_NOTINITIALIZED)
     {
-        hr = CoInitializeEx(NULL, COINIT_MULTITHREADED | COINIT_DISABLE_OLE1DDE);
+        auto error = CoInitializeEx(NULL, COINIT_MULTITHREADED | COINIT_DISABLE_OLE1DDE);
 
-        if (hr == S_OK)
+        if (error == S_OK)
         {
             initialized_ = true;
         }
-        else if (hr == S_FALSE)
+        else if (error == S_FALSE)
         {
             CoUninitialize();
         }
-        else
+        else if (FAILED(error))
         {
-            if (FAILED(hr)) return SPI_OTHER_ERROR;
+            return SPI_OTHER_ERROR;
         }
 
-        hr = CoCreateInstance(
+        error = CoCreateInstance(
             CLSID_WICImagingFactory,
             NULL,
             CLSCTX_INPROC_SERVER,
             IID_IWICImagingFactory,
             reinterpret_cast<void**>(pFactory.GetAddressOf())
         );
-        if (FAILED(hr)) return SPI_OTHER_ERROR;
+        if (FAILED(error)) return SPI_OTHER_ERROR;
+    }
+    else if (FAILED(hr))
+    {
+        return SPI_OTHER_ERROR;
     }
 
     ComPtr<IWICStream> pStream;

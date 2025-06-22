@@ -1,7 +1,6 @@
 // Copyright (c) 2024 - 2025 sincos2854
 // Licensed under the MIT License
 
-#include "common.h"
 #include "wic.h"
 #include "ifsjpeglicm.h"
 #include "lib/jpegli/decode.h"
