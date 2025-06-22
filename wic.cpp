@@ -27,18 +27,9 @@ int SpiWic::Decode(const BYTE* data, size_t size, PictureHandle& h_bitmap_info, 
     if (hr == CO_E_NOTINITIALIZED)
     {
         auto error = CoInitializeEx(NULL, COINIT_MULTITHREADED | COINIT_DISABLE_OLE1DDE);
-
-        if (error == S_OK)
+        if (SUCCEEDED(error))
         {
             initialized_ = true;
-        }
-        else if (error == S_FALSE)
-        {
-            CoUninitialize();
-        }
-        else if (FAILED(error))
-        {
-            return SPI_OTHER_ERROR;
         }
 
         error = CoCreateInstance(
