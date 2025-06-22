@@ -39,8 +39,8 @@ int GetPictureInfoEx(LPCWSTR file_name, const BYTE* data, size_t size, PictureIn
         return SPI_NOT_SUPPORT;
     }
 
-    jpeg_decompress_struct cinfo {};
-    ifsjpegli_error_mgr jerr {};
+    jpeg_decompress_struct cinfo{};
+    ifsjpegli_error_mgr jerr{};
 
     cinfo.err = jpegli_std_error(&jerr.pub);
     jerr.pub.error_exit = error_exit;
@@ -88,8 +88,6 @@ int GetPictureEx(LPCWSTR file_name, const BYTE* data, size_t size, HANDLE* pHBIn
 
     PictureHandle h_bitmap_info;
     PictureHandle h_bitmap;
-    LPBITMAPINFOHEADER bitmap_header = nullptr;
-    BYTE* bitmap = nullptr;
 
     jpeg_decompress_struct cinfo{};
     ifsjpegli_error_mgr jerr{};
@@ -154,51 +152,54 @@ int GetPictureEx(LPCWSTR file_name, const BYTE* data, size_t size, HANDLE* pHBIn
         {
             if (0 < profile_size)
             {
-                h_bitmap_info = PictureHandle(
-                    LocalAlloc(LMEM_MOVEABLE | LMEM_ZEROINIT, sizeof(BITMAPV5HEADER) + profile_size)
-                );
+                h_bitmap_info = PictureHandle(LocalAlloc(LMEM_MOVEABLE | LMEM_ZEROINIT, sizeof(BITMAPV5HEADER) + profile_size));
+
                 if (!h_bitmap_info)
                 {
                     longjmp(jerr.setjmp_buffer, SPI_NO_MEMORY);
                 }
 
-                LPBITMAPV5HEADER v5 = reinterpret_cast<LPBITMAPV5HEADER>(LocalLock(h_bitmap_info.get()));
-                if (!v5)
+                auto auto_unlock_header = std::make_unique<AutoUnlockBitmapHeader>(h_bitmap_info.get());
+
+                if (!auto_unlock_header->MakeV5Header())
                 {
                     longjmp(jerr.setjmp_buffer, SPI_MEMORY_ERROR);
                 }
+
+                auto v5 = auto_unlock_header->GetV5Header();
 
                 v5->bV5Size = sizeof(BITMAPV5HEADER);
                 v5->bV5CSType = PROFILE_EMBEDDED;
                 v5->bV5ProfileData = sizeof(BITMAPV5HEADER);
                 v5->bV5ProfileSize = profile_size;
-                std::memcpy(reinterpret_cast<BYTE*>(v5) + v5->bV5ProfileData, profile_data.get(), v5->bV5ProfileSize);
 
-                LocalUnlock(h_bitmap_info.get());
+                std::memcpy(reinterpret_cast<BYTE*>(v5) + v5->bV5ProfileData, profile_data.get(), v5->bV5ProfileSize);
             }
         }
 
-        if (profile_size == 0)
+        if (!h_bitmap_info)
         {
-            h_bitmap_info = PictureHandle(
-                LocalAlloc(LMEM_MOVEABLE | LMEM_ZEROINIT, sizeof(BITMAPINFO))
-            );
+            h_bitmap_info = PictureHandle(LocalAlloc(LMEM_MOVEABLE | LMEM_ZEROINIT, sizeof(BITMAPINFO)));
+
             if (!h_bitmap_info)
             {
                 longjmp(jerr.setjmp_buffer, SPI_NO_MEMORY);
             }
         }
 
-        bitmap_header = reinterpret_cast<LPBITMAPINFOHEADER>(LocalLock(h_bitmap_info.get()));
+        auto auto_unlock_header = std::make_unique<AutoUnlockBitmapHeader>(h_bitmap_info.get());
+        auto bitmap_header = auto_unlock_header->GetBitmapHeader();
+
         if (!bitmap_header)
         {
             longjmp(jerr.setjmp_buffer, SPI_MEMORY_ERROR);
         }
 
-        if (profile_size == 0)
+        if (!auto_unlock_header->GetV5Header())
         {
             bitmap_header->biSize = sizeof(BITMAPINFOHEADER);
         }
+
         bitmap_header->biWidth = width;
         bitmap_header->biHeight = height;
         bitmap_header->biPlanes = 1;
@@ -208,14 +209,16 @@ int GetPictureEx(LPCWSTR file_name, const BYTE* data, size_t size, HANDLE* pHBIn
         bitmap_header->biYPelsPerMeter = static_cast<LONG>(cinfo.Y_density * 39.37);
 
         // Decode the image
-        h_bitmap = PictureHandle(
-            LocalAlloc(LMEM_MOVEABLE, bitmap_size)
-        );
+        h_bitmap = PictureHandle(LocalAlloc(LMEM_MOVEABLE, bitmap_size));
+
         if (!h_bitmap)
         {
             longjmp(jerr.setjmp_buffer, SPI_NO_MEMORY);
         }
-        bitmap = reinterpret_cast<BYTE*>(LocalLock(h_bitmap.get()));
+
+        auto auto_unlock_bitmap = std::make_unique<AutoUnlockBitmap>(h_bitmap.get());
+        auto bitmap = auto_unlock_bitmap->GetBitmap();
+
         if (!bitmap)
         {
             longjmp(jerr.setjmp_buffer, SPI_MEMORY_ERROR);
@@ -244,9 +247,6 @@ int GetPictureEx(LPCWSTR file_name, const BYTE* data, size_t size, HANDLE* pHBIn
             return SPI_ABORT;
         }
     }
-
-    LocalUnlock(h_bitmap.get());
-    LocalUnlock(h_bitmap_info.get());
 
     *pHBInfo = h_bitmap_info.get();
     *pHBm = h_bitmap.get();
