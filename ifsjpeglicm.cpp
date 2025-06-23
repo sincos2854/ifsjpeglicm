@@ -112,7 +112,7 @@ int GetPictureEx(LPCWSTR file_name, const BYTE* data, size_t size, HANDLE* pHBIn
         }
 
         // CMYK/YCCK
-        if (cinfo.out_color_space == JCS_CMYK)
+        if (cinfo.out_color_space == JCS_CMYK || cinfo.out_color_space == JCS_YCCK)
         {
             cmyk = true;
             jpegli_destroy_decompress(&cinfo);
