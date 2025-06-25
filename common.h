@@ -90,16 +90,6 @@ public:
         return locked_v5_;
     }
 
-    inline void Unlock(void)
-    {
-        if (locked_header_ != nullptr)
-        {
-            LocalUnlock(handle_);
-            locked_header_ = nullptr;
-            locked_v5_ = nullptr;
-        }
-    }
-
 private:
     HANDLE handle_;
     LPBITMAPINFOHEADER locked_header_;
@@ -128,15 +118,6 @@ public:
     inline BYTE* GetBitmap(void) const
     {
         return locked_bitmap_;
-    }
-
-    inline void Unlock(void)
-    {
-        if (locked_bitmap_ != nullptr)
-        {
-            LocalUnlock(handle_);
-            locked_bitmap_ = nullptr;
-        }
     }
 
 private:
