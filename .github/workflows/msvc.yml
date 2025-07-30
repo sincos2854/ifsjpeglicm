@@ -1,0 +1,147 @@
+# This workflow uses actions that are not certified by GitHub.
+# They are provided by a third-party and are governed by
+# separate terms of service, privacy policy, and support
+# documentation.
+
+name: MSVC
+
+on:
+  workflow_dispatch:
+  push:
+    tags: ["v*"]
+
+env:
+  PROJECT_NAME: ifsjpeglicm
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        arch: ["x86", "x64"]
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Set Variables
+      run: |
+        if ("${{matrix.arch}}" -eq "x86")
+        {
+          echo "MSVC_ARCH=Win32" >> $env:GITHUB_ENV
+          echo "SPI_EXT=spi" >> $env:GITHUB_ENV
+        }
+        else
+        {
+          echo "MSVC_ARCH=x64" >> $env:GITHUB_ENV
+          echo "SPI_EXT=sph" >> $env:GITHUB_ENV
+        }
+
+    - name: Show Variables
+      run: |
+        echo "env env.MSVC_ARCH ${{env.MSVC_ARCH}}"
+        echo "env env.SPI_EXT ${{env.SPI_EXT}}"
+
+    - name: Setup cmake
+      uses: jwlawson/actions-setup-cmake@v2
+
+    - name: Check cmake version
+      run: cmake --version
+
+    - name: Add msbuild to PATH
+      uses: microsoft/setup-msbuild@v2
+
+    - name: Checkout jpegli
+      run: .\build_checkout_jpegli.cmd
+
+    - name: Bulid jpegli
+      run: |
+        cd jpegli
+
+        cmake -G "Visual Studio 17 2022" -A ${{env.MSVC_ARCH}} `
+        -B "build_release" `
+        -DCMAKE_INSTALL_PREFIX="out_release" `
+        -DCMAKE_BUILD_TYPE=Release `
+        -DCMAKE_MSVC_RUNTIME_LIBRARY="MultiThreaded$<$<CONFIG:Debug>:Debug>" `
+        -DBUILD_TESTING=OFF `
+        -DJPEGXL_ENABLE_JNI=OFF `
+        -DJPEGXL_ENABLE_SJPEG=OFF `
+        -DJPEGXL_ENABLE_OPENEXR=OFF `
+        -DJPEGXL_ENABLE_BENCHMARK=OFF `
+        -DJPEGXL_STATIC=ON
+
+        cmake --build "build_release" --config Release --target install
+
+    - name: Build spi
+      working-directory: ${{env.GITHUB_WORKSPACE}}
+      run: |
+        New-Item ".\include\${{env.MSVC_ARCH}}\lib\jpegli\" -ItemType Directory -ErrorAction SilentlyContinue
+        New-Item ".\include\${{env.MSVC_ARCH}}\lib\base\" -ItemType Directory -ErrorAction SilentlyContinue
+
+        Copy-Item -Path ".\jpegli\build_release\lib\include\jpegli\*.h" -Destination ".\include\${{env.MSVC_ARCH}}\"
+        Copy-Item -Path ".\jpegli\lib\jpegli\common.h" -Destination ".\include\${{env.MSVC_ARCH}}\lib\jpegli\"
+        Copy-Item -Path ".\jpegli\lib\jpegli\decode.h" -Destination ".\include\${{env.MSVC_ARCH}}\lib\jpegli\"
+        Copy-Item -Path ".\jpegli\lib\jpegli\types.h" -Destination ".\include\${{env.MSVC_ARCH}}\lib\jpegli\"
+        Copy-Item -Path ".\jpegli\lib\base\include_jpeglib.h" -Destination ".\include\${{env.MSVC_ARCH}}\lib\base\"
+
+        New-Item ".\lib\${{env.MSVC_ARCH}}\Release\" -ItemType Directory -ErrorAction SilentlyContinue
+
+        $hwy = Get-ChildItem -Path ".\jpegli\build_release\" -Recurse -File -Filter "hwy.lib" | Select-Object -First 1 -ExpandProperty FullName
+        Copy-Item -Path "$hwy" -Destination ".\lib\${{env.MSVC_ARCH}}\Release\"
+        $jpegli = Get-ChildItem -Path ".\jpegli\build_release\" -Recurse -File -Filter "jpegli-static.lib" | Select-Object -First 1 -ExpandProperty FullName
+        Copy-Item -Path "$jpegli" -Destination ".\lib\${{env.MSVC_ARCH}}\Release\"
+
+        #Get-ChildItem ".\lib\" -Recurse
+
+        msbuild /m /p:Platform=${{matrix.arch}} /p:Configuration=Release .
+
+    - name: Create a zip file
+      run: |
+        New-Item ".\${{env.PROJECT_NAME}}\" -ItemType Director
+        Copy-Item -Path ".\out\${{env.MSVC_ARCH}}\Release\${{env.PROJECT_NAME}}.${{env.SPI_EXT}}" -Destination ".\${{env.PROJECT_NAME}}\"
+
+        if("${{matrix.arch}}" -eq "x64")
+        {
+          Copy-Item -Path ".\jpegli\LICENSE" -Destination ".\${{env.PROJECT_NAME}}\LICENSE_jpegli"
+          Copy-Item -Path ".\LICENSE" -Destination ".\${{env.PROJECT_NAME}}\LICENSE_${{env.PROJECT_NAME}}"
+        }
+
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{matrix.arch}}
+        path: .\${{env.PROJECT_NAME}}\
+        retention-days: 1
+        overwrite: true
+
+  Release:
+    runs-on: ubuntu-latest
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/')
+
+    steps:
+    - name: Download All Artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: ${{env.PROJECT_NAME}}
+        merge-multiple: true
+
+    - name: Create a zip
+      run: |
+        ls -l ./${{env.PROJECT_NAME}}/
+        zip -j ${{env.PROJECT_NAME}} ./${{env.PROJECT_NAME}}/*
+        ls -l
+        zipinfo ./${{env.PROJECT_NAME}}.zip
+
+    - name: Release
+      uses: softprops/action-gh-release@v2
+      if: startsWith(github.ref, 'refs/tags/')
+      with:
+        name: Release ${{github.ref_name}}
+        body: |
+          ## Release notes
+        files: ${{env.PROJECT_NAME}}.zip
+  
