@@ -15,6 +15,11 @@ From Releases page
 - Always returns a 32bit BGRA bitmap
 - ICC Profile (Need a viewer that supports color management like [susico](http://www.vector.co.jp/soft/dl/winnt/art/se515212.html))
 
+## Libraries Used
+
+- [Jpegli](https://github.com/google/jpegli) (Dependency: [Highway](https://github.com/google/highway))
+- [OpenCV](https://github.com/opencv/opencv)
+
 ## Inspired by
 
 - [TORO's Software library(Win32/Win64 Plugin)](http://toro.d.dooo.jp/slplugin.html)

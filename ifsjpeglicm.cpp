@@ -2,8 +2,10 @@
 // Licensed under the MIT License
 
 #include "wic.h"
+#include "exif.h"
 #include "ifsjpeglicm.h"
-#include "lib/jpegli/decode.h"
+#include <lib/jpegli/decode.h>
+#include <opencv2/core.hpp>
 
 bool IsSupportedEx(LPCWSTR filename, const BYTE* data)
 {
@@ -36,6 +38,7 @@ int GetPictureInfoEx(LPCWSTR file_name, const BYTE* data, size_t size, PictureIn
 
     jpeg_decompress_struct cinfo{};
     jpeg_error_mgr jerr{};
+    int orientation = 0;
 
     cinfo.err = jpegli_std_error(&jerr);
     jerr.error_exit = error_exit;
@@ -45,20 +48,28 @@ int GetPictureInfoEx(LPCWSTR file_name, const BYTE* data, size_t size, PictureIn
         jpegli_create_decompress(&cinfo);
         jpegli_mem_src(&cinfo, data, static_cast<unsigned long>(size));
 
+        // Required to get the EXIF data
+        jpegli_save_markers(&cinfo, JPEG_APP0 + 1, 0xFFFF);
+
         if (jpegli_read_header(&cinfo, FALSE) == JPEG_SUSPENDED)
         {
             throw SPI_OUT_OF_ORDER;
+        }
+
+        for (auto marker = cinfo.marker_list; marker; marker = marker->next)
+        {
+            if (marker->marker == JPEG_APP0 + 1 && Exif::CheckExif(marker->data, marker->data_length))
+            {
+                auto exif = std::make_unique<Exif>();
+                orientation = exif->GetOrientation(marker->data, marker->data_length);
+                break;
+            }
         }
     }
     catch (int e)
     {
         jpegli_destroy_decompress(&cinfo);
         return e;
-    }
-    catch (...)
-    {
-        jpegli_destroy_decompress(&cinfo);
-        return SPI_OTHER_ERROR;
     }
 
     *lpInfo = {};
@@ -67,6 +78,14 @@ int GetPictureInfoEx(LPCWSTR file_name, const BYTE* data, size_t size, PictureIn
     lpInfo->x_density = cinfo.X_density;
     lpInfo->y_density = cinfo.Y_density;
     lpInfo->colorDepth = 32;
+
+    if (5 <= orientation)
+    {
+        lpInfo->width = cinfo.image_height;
+        lpInfo->height = cinfo.image_width;
+        lpInfo->x_density = cinfo.Y_density;
+        lpInfo->y_density = cinfo.X_density;
+    }
 
     jpegli_destroy_decompress(&cinfo);
 
@@ -102,6 +121,9 @@ int GetPictureEx(LPCWSTR file_name, const BYTE* data, size_t size, HANDLE* pHBIn
     {
         jpegli_create_decompress(&cinfo);
         jpegli_mem_src(&cinfo, data, static_cast<unsigned long>(size));
+
+        // Required to get the EXIF data
+        jpegli_save_markers(&cinfo, JPEG_APP0 + 1, 0xFFFF);
 
         // Required to get the ICC Profile
         jpegli_save_markers(&cinfo, JPEG_APP0 + 2, 0xFFFF);
@@ -196,6 +218,23 @@ int GetPictureEx(LPCWSTR file_name, const BYTE* data, size_t size, HANDLE* pHBIn
             bitmap_header->biXPelsPerMeter = static_cast<LONG>(cinfo.X_density * 39.37);
             bitmap_header->biYPelsPerMeter = static_cast<LONG>(cinfo.Y_density * 39.37);
 
+            // Get Orientation form the EXIF
+            int orientation = 0;
+
+            for (auto marker = cinfo.marker_list; marker; marker = marker->next)
+            {
+                if (marker->marker == JPEG_APP0 + 1 && Exif::CheckExif(marker->data, marker->data_length))
+                {
+                    auto exif = std::make_unique<Exif>();
+                    orientation = exif->GetOrientation(marker->data , marker->data_length);
+                    if (orientation < 1)
+                    {
+                        orientation = 1;
+                    }
+                    break;
+                }
+            }
+
             // Decode the image
             h_bitmap = PictureHandle(LocalAlloc(LMEM_MOVEABLE, bitmap_size));
 
@@ -212,16 +251,96 @@ int GetPictureEx(LPCWSTR file_name, const BYTE* data, size_t size, HANDLE* pHBIn
                 throw SPI_MEMORY_ERROR;
             }
 
-            auto ptr = std::make_unique_for_overwrite<JSAMPROW[]>(height);
+            std::unique_ptr<BYTE[]> temp_bitmap;
+            BYTE* ptr_to_bitmap = bitmap;
+
+            if (1 < orientation)
+            {
+                temp_bitmap = std::make_unique_for_overwrite<BYTE[]>(bitmap_size);
+                ptr_to_bitmap = temp_bitmap.get();
+            }
+            
+            auto ptr_array = std::make_unique_for_overwrite<JSAMPROW[]>(height);
 
             for (LONG j = 0; j < height; j++)
             {
-                ptr[j] = bitmap + (height - j - 1) * stride;
+                //ptr_array[j] = ptr_to_bitmap + j * stride;
+                ptr_array[j] = ptr_to_bitmap + (height - j - 1) * stride;
             }
 
             while (cinfo.output_scanline < cinfo.output_height)
             {
-                jpegli_read_scanlines(&cinfo, &ptr[cinfo.output_scanline], cinfo.output_height - cinfo.output_scanline);
+                jpegli_read_scanlines(&cinfo, &ptr_array[cinfo.output_scanline], cinfo.output_height - cinfo.output_scanline);
+            }
+
+            if (1 < orientation)
+            {
+                if (!temp_bitmap)
+                {
+                    throw SPI_OTHER_ERROR;
+                }
+
+                // 1: Do nothing
+                // 2: Flip horizontally
+                // 3: Rotate 180 degrees clockwise
+                // 4: Flip vertically
+                // 5: Flip horizontally + rotate 270 degrees clockwise
+                // 6: Rotate 90 degrees clockwise
+                // 7: Flip horizontally + rotate 90 degrees clockwise
+                // 8: Rotate 270 degrees clockwise
+
+                int flip_code = -1;
+                int rotate_code = -1;
+
+                // Set Flip code
+                if (orientation == 2 || orientation == 5 || orientation == 7)
+                {
+                    flip_code = 1;
+                }
+                else if (orientation == 4)
+                {
+                    flip_code = 0;
+                }
+
+                // Set Rotate code
+                if (orientation == 3)
+                {
+                    rotate_code = cv::RotateFlags::ROTATE_180;
+                }
+                else if (orientation == 5 || orientation == 8)
+                {
+                    //rotate_code = cv::RotateFlags::ROTATE_90_COUNTERCLOCKWISE;
+                    rotate_code = cv::RotateFlags::ROTATE_90_CLOCKWISE;
+                }
+                else if (orientation == 6 || orientation == 7)
+                {
+                    //rotate_code = cv::RotateFlags::ROTATE_90_CLOCKWISE;
+                    rotate_code = cv::RotateFlags::ROTATE_90_COUNTERCLOCKWISE;
+                }
+
+                // Swap width and height
+                if (5 <= orientation)
+                {
+                    bitmap_header->biWidth = height;
+                    bitmap_header->biHeight = width;
+                }
+
+                cv::Mat src_mat(height, width, CV_8UC(4), temp_bitmap.get(), stride);
+                cv::Mat dst_mat(bitmap_header->biHeight, bitmap_header->biWidth, src_mat.type(), bitmap, bitmap_header->biWidth * 4);
+
+                if (0 <= flip_code && rotate_code < 0)
+                {
+                    cv::flip(src_mat, dst_mat, flip_code);
+                }
+                else if (flip_code < 0 && 0 <= rotate_code)
+                {
+                    cv::rotate(src_mat, dst_mat, rotate_code);
+                }
+                else
+                {
+                    cv::flip(src_mat, src_mat, flip_code);
+                    cv::rotate(src_mat, dst_mat, rotate_code);
+                }
             }
 
             jpegli_finish_decompress(&cinfo);
@@ -232,11 +351,6 @@ int GetPictureEx(LPCWSTR file_name, const BYTE* data, size_t size, HANDLE* pHBIn
     {
         jpegli_destroy_decompress(&cinfo);
         return e;
-    }
-    catch (...)
-    {
-        jpegli_destroy_decompress(&cinfo);
-        return SPI_OTHER_ERROR;
     }
 
     if (cmyk)

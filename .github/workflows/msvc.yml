@@ -54,59 +54,32 @@ jobs:
     - name: Add msbuild to PATH
       uses: microsoft/setup-msbuild@v2
 
-    - name: Checkout jpegli
+    - name: Checkout Jpegli
       run: .\build_checkout_jpegli.cmd
 
-    - name: Bulid jpegli
-      run: |
-        cd jpegli
+    - name: Bulid Jpegli
+      run: .\build_jpegli.cmd
 
-        cmake -G "Visual Studio 17 2022" -A ${{env.MSVC_ARCH}} `
-        -B "build_release" `
-        -DCMAKE_INSTALL_PREFIX="out_release" `
-        -DCMAKE_BUILD_TYPE=Release `
-        -DCMAKE_MSVC_RUNTIME_LIBRARY="MultiThreaded$<$<CONFIG:Debug>:Debug>" `
-        -DBUILD_TESTING=OFF `
-        -DJPEGXL_ENABLE_JNI=OFF `
-        -DJPEGXL_ENABLE_SJPEG=OFF `
-        -DJPEGXL_ENABLE_OPENEXR=OFF `
-        -DJPEGXL_ENABLE_BENCHMARK=OFF `
-        -DJPEGXL_STATIC=ON
+    - name: Checkout OpenCV
+      run: .\build_checkout_opencv.cmd
 
-        cmake --build "build_release" --config Release --target install
+    - name: Bulid OpenCV
+      run: .\build_opencv.cmd
 
-    - name: Build spi
-      working-directory: ${{env.GITHUB_WORKSPACE}}
-      run: |
-        New-Item ".\include\${{env.MSVC_ARCH}}\lib\jpegli\" -ItemType Directory -ErrorAction SilentlyContinue
-        New-Item ".\include\${{env.MSVC_ARCH}}\lib\base\" -ItemType Directory -ErrorAction SilentlyContinue
-
-        Copy-Item -Path ".\jpegli\build_release\lib\include\jpegli\*.h" -Destination ".\include\${{env.MSVC_ARCH}}\"
-        Copy-Item -Path ".\jpegli\lib\jpegli\common.h" -Destination ".\include\${{env.MSVC_ARCH}}\lib\jpegli\"
-        Copy-Item -Path ".\jpegli\lib\jpegli\decode.h" -Destination ".\include\${{env.MSVC_ARCH}}\lib\jpegli\"
-        Copy-Item -Path ".\jpegli\lib\jpegli\types.h" -Destination ".\include\${{env.MSVC_ARCH}}\lib\jpegli\"
-        Copy-Item -Path ".\jpegli\lib\base\include_jpeglib.h" -Destination ".\include\${{env.MSVC_ARCH}}\lib\base\"
-
-        New-Item ".\lib\${{env.MSVC_ARCH}}\Release\" -ItemType Directory -ErrorAction SilentlyContinue
-
-        $hwy = Get-ChildItem -Path ".\jpegli\build_release\" -Recurse -File -Filter "hwy.lib" | Select-Object -First 1 -ExpandProperty FullName
-        Copy-Item -Path "$hwy" -Destination ".\lib\${{env.MSVC_ARCH}}\Release\"
-        $jpegli = Get-ChildItem -Path ".\jpegli\build_release\" -Recurse -File -Filter "jpegli-static.lib" | Select-Object -First 1 -ExpandProperty FullName
-        Copy-Item -Path "$jpegli" -Destination ".\lib\${{env.MSVC_ARCH}}\Release\"
-
-        #Get-ChildItem ".\lib\" -Recurse
-
-        msbuild /m /p:Platform=${{matrix.arch}} /p:Configuration=Release .
+    - name: Build SPI
+      run: msbuild /m /p:Platform=${{matrix.arch}} /p:Configuration=Release .
 
     - name: Create a zip file
       run: |
-        New-Item ".\${{env.PROJECT_NAME}}\" -ItemType Director
+        New-Item ".\${{env.PROJECT_NAME}}\LICENSE\" -ItemType Directory -Force
         Copy-Item -Path ".\out\${{env.MSVC_ARCH}}\Release\${{env.PROJECT_NAME}}.${{env.SPI_EXT}}" -Destination ".\${{env.PROJECT_NAME}}\"
 
         if("${{matrix.arch}}" -eq "x64")
         {
-          Copy-Item -Path ".\jpegli\LICENSE" -Destination ".\${{env.PROJECT_NAME}}\LICENSE_jpegli"
-          Copy-Item -Path ".\LICENSE" -Destination ".\${{env.PROJECT_NAME}}\LICENSE_${{env.PROJECT_NAME}}"
+          Copy-Item -Path ".\LICENSE" -Destination ".\${{env.PROJECT_NAME}}\LICENSE\LICENSE_${{env.PROJECT_NAME}}"
+          Copy-Item -Path ".\jpegli\LICENSE" -Destination ".\${{env.PROJECT_NAME}}\LICENSE\LICENSE_jpegli"
+          Copy-Item -Path ".\jpegli\third_party\highway\LICENSE" -Destination ".\${{env.PROJECT_NAME}}\LICENSE\LICENSE_highway"
+          Copy-Item -Path ".\opencv\LICENSE" -Destination ".\${{env.PROJECT_NAME}}\LICENSE\LICENSE_opencv"
         }
 
     - name: Upload Artifact
@@ -118,7 +91,7 @@ jobs:
         overwrite: true
 
   Release:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
     needs: build
     if: startsWith(github.ref, 'refs/tags/')
 

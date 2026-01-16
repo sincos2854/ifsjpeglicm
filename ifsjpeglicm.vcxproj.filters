@@ -26,6 +26,9 @@
     <ClInclude Include="wic.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="exif.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ifsjpeglicm.cpp">
@@ -35,6 +38,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="wic.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="exif.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
