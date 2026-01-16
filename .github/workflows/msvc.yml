@@ -58,13 +58,13 @@ jobs:
       run: .\build_checkout_jpegli.cmd
 
     - name: Bulid Jpegli
-      run: .\build_jpegli.cmd
+      run: .\build_jpegli.cmd ${{env.MSVC_ARCH}}
 
     - name: Checkout OpenCV
       run: .\build_checkout_opencv.cmd
 
     - name: Bulid OpenCV
-      run: .\build_opencv.cmd
+      run: .\build_opencv.cmd ${{env.MSVC_ARCH}}
 
     - name: Build SPI
       run: msbuild /m /p:Platform=${{matrix.arch}} /p:Configuration=Release .
