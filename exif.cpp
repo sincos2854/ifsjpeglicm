@@ -123,7 +123,7 @@ bool Exif::GetEndian(void)
     return true;
 }
 
-DWORD Exif::GetIFD0Address(void)
+DWORD Exif::GetIFD0Address(void) const
 {
     DWORD ifd0_address = 0;
 

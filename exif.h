@@ -38,7 +38,7 @@ public:
 
 private:
     bool GetEndian(void);
-    DWORD GetIFD0Address(void);
+    DWORD GetIFD0Address(void) const;
     bool MovePointer(UINT length);
     bool GetSHORTAndMovePointer(WORD& value);
     bool GetLONGAndMovePointer(DWORD& value);
