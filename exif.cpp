@@ -132,7 +132,7 @@ DWORD Exif::GetIFD0Address(void)
         return 0;
     }
 
-    if (memcpy_s(&ifd0_address, sizeof(ifd0_address), data_ + IFD0_POINTER_STORAGE_ADDRESS, sizeof(ifd0_address)))
+    if (std::memcpy(&ifd0_address, data_ + IFD0_POINTER_STORAGE_ADDRESS, sizeof(ifd0_address)))
     {
         return 0;
     }
@@ -168,7 +168,7 @@ bool Exif::GetSHORTAndMovePointer(WORD& value)
         return false;
     }
 
-    if(memcpy_s(&value, sizeof(value), data_, sizeof(value)))
+    if(std::memcpy(&value, data_, sizeof(value)))
     {
         return false;
     }
@@ -193,7 +193,7 @@ bool Exif::GetLONGAndMovePointer(DWORD& value)
         return false;
     }
 
-    if(memcpy_s(&value, sizeof(value), data_, sizeof(value)))
+    if(std::memcpy(&value, data_, sizeof(value)))
     {
         return false;
     }
