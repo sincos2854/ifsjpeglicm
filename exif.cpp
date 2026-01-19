@@ -1,7 +1,6 @@
 // Copyright (c) 2024 - 2026 sincos2854
 // Licensed under the MIT License
 
-#include <bit>
 #include "exif.h"
 
 int Exif::GetOrientation(const BYTE* data, UINT data_length)
@@ -38,7 +37,7 @@ int Exif::GetOrientation(const BYTE* data, UINT data_length)
 
     WORD tag_count = 0;
 
-    if (!GetSHORTAndMovePointer(tag_count))
+    if (!GetDataAndMovePointer(tag_count))
     {
         return EXIF_ERROR;
     }
@@ -47,7 +46,7 @@ int Exif::GetOrientation(const BYTE* data, UINT data_length)
     {
         WORD tag = 0;
 
-        if (!GetSHORTAndMovePointer(tag))
+        if (!GetDataAndMovePointer(tag))
         {
             return EXIF_ERROR;
         }
@@ -70,7 +69,7 @@ int Exif::GetOrientation(const BYTE* data, UINT data_length)
 
         WORD value_type = 0;
 
-        if (!GetSHORTAndMovePointer(value_type))
+        if (!GetDataAndMovePointer(value_type))
         {
             return EXIF_ERROR;
         }
@@ -82,14 +81,14 @@ int Exif::GetOrientation(const BYTE* data, UINT data_length)
 
         DWORD value_count = 0;
 
-        if(!GetLONGAndMovePointer(value_count))
+        if(!GetDataAndMovePointer(value_count))
         {
             return EXIF_ERROR;
         }
 
         WORD orientation = 0;
 
-        if(!GetSHORTAndMovePointer(orientation))
+        if(!GetDataAndMovePointer(orientation))
         {
             return EXIF_ERROR;
         }
@@ -156,48 +155,4 @@ bool Exif::MovePointer(UINT length)
     data_length_ = 0;
 
     return false;
-}
-
-bool Exif::GetSHORTAndMovePointer(WORD& value)
-{
-    if (data_length_ < sizeof(value))
-    {
-        return false;
-    }
-
-    std::memcpy(&value, data_, sizeof(value));
-
-    if (big_endian_)
-    {
-        value = std::byteswap(value);
-    }
-
-    if (!MovePointer(sizeof(value)))
-    {
-        return false;
-    }
-
-    return true;
-}
-
-bool Exif::GetLONGAndMovePointer(DWORD& value)
-{
-    if (data_length_ < sizeof(value))
-    {
-        return false;
-    }
-
-    std::memcpy(&value, data_, sizeof(value));
-
-    if (big_endian_)
-    {
-        value = std::byteswap(value);
-    }
-
-    if (!MovePointer(sizeof(value)))
-    {
-        return false;
-    }
-
-    return true;
 }

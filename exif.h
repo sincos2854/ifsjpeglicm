@@ -3,8 +3,9 @@
 
 #pragma once
 
-#include <string>
 #include "spi00in.h"
+#include <string>
+#include <bit>
 
 constexpr int EXIF_ERROR = -1;
 constexpr int EXIF_NO_ORIENTATION = 0;
@@ -19,8 +20,6 @@ constexpr UINT IFD0_POINTER_STORAGE_ADDRESS = 0x04;
 
 constexpr WORD ORIENTATION_TAG = 0x0112;
 
-constexpr UINT SHORT_BYTES = 2;
-constexpr UINT LONG_BYTES = 4;
 constexpr UINT TAG_BYTES = 12;
 
 class Exif
@@ -40,8 +39,29 @@ private:
     bool GetEndian(void);
     DWORD GetIFD0Address(void) const;
     bool MovePointer(UINT length);
-    bool GetSHORTAndMovePointer(WORD& value);
-    bool GetLONGAndMovePointer(DWORD& value);
+
+    template <typename T>
+    bool GetDataAndMovePointer(T& value)
+    {
+        if (data_length_ < sizeof(value))
+        {
+            return false;
+        }
+
+        std::memcpy(&value, data_, sizeof(value));
+
+        if (big_endian_)
+        {
+            value = std::byteswap(value);
+        }
+
+        if (!MovePointer(sizeof(value)))
+        {
+            return false;
+        }
+
+        return true;
+    }
 
 private:
     const BYTE* data_;
