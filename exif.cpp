@@ -4,7 +4,7 @@
 #include <bit>
 #include "exif.h"
 
-int Exif::GetOrientation(BYTE* data, UINT data_length)
+int Exif::GetOrientation(const BYTE* data, UINT data_length)
 {
     data_ = data;
     data_length_ = data_length;

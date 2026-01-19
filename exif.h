@@ -29,12 +29,12 @@ public:
     Exif() : data_(nullptr), data_length_(0), big_endian_(false) {}
     ~Exif() {}
 
-    inline static bool CheckExif(BYTE* data, UINT data_length)
+    inline static bool CheckExif(const BYTE* data, UINT data_length)
     {
         return EXIF_SIGN_SIZE <= data_length && std::memcmp(data, EXIF_SIGN, EXIF_SIGN_SIZE) == 0 ? true : false;
     }
 
-    int GetOrientation(BYTE* data, UINT data_length);
+    int GetOrientation(const BYTE* data, UINT data_length);
 
 private:
     bool GetEndian(void);
@@ -44,7 +44,7 @@ private:
     bool GetLONGAndMovePointer(DWORD& value);
 
 private:
-    BYTE* data_;
+    const BYTE* data_;
     UINT data_length_;
     bool big_endian_;
 };
