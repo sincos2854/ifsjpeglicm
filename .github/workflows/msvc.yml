@@ -16,7 +16,7 @@ jobs:
     strategy:
       matrix:
         arch: ["x86", "x64"]
-    runs-on: windows-latest
+    runs-on: windows-2025-vs2026
 
     steps:
     - name: Checkout
@@ -114,3 +114,4 @@ jobs:
         body: |
           ## Release notes
         files: ${{env.PROJECT_NAME}}.zip
+  

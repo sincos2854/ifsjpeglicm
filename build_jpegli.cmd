@@ -29,7 +29,7 @@ exit /b
 
     rd /s /q build_%BUILD_ARCH%_release >nul 2>&1
 
-    cmake -G "Visual Studio 17 2022" -A %BUILD_ARCH% ^
+    cmake -G "Visual Studio 18 2026" -A %BUILD_ARCH% ^
     -B "build_%BUILD_ARCH%_release" ^
     -DCMAKE_INSTALL_PREFIX="out_%BUILD_ARCH%_release" ^
     -DCMAKE_BUILD_TYPE=Release ^
