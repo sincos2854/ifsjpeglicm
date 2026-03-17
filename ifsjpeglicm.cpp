@@ -60,8 +60,10 @@ int GetPictureInfoEx(LPCWSTR file_name, const BYTE* data, size_t size, PictureIn
         {
             if (marker->marker == JPEG_APP0 + 1 && Exif::CheckExif(marker->data, marker->data_length))
             {
-                auto exif = std::make_unique<Exif>();
-                orientation = exif->GetOrientation(marker->data, marker->data_length);
+                Exif exif;
+
+                orientation = exif.GetOrientation(marker->data, marker->data_length);
+
                 break;
             }
         }
@@ -69,6 +71,7 @@ int GetPictureInfoEx(LPCWSTR file_name, const BYTE* data, size_t size, PictureIn
     catch (int e)
     {
         jpegli_destroy_decompress(&cinfo);
+
         return e;
     }
 
@@ -225,12 +228,15 @@ int GetPictureEx(LPCWSTR file_name, const BYTE* data, size_t size, HANDLE* pHBIn
             {
                 if (marker->marker == JPEG_APP0 + 1 && Exif::CheckExif(marker->data, marker->data_length))
                 {
-                    auto exif = std::make_unique<Exif>();
-                    orientation = exif->GetOrientation(marker->data , marker->data_length);
+                    Exif exif;
+
+                    orientation = exif.GetOrientation(marker->data , marker->data_length);
+
                     if (orientation < 1)
                     {
                         orientation = 1;
                     }
+
                     break;
                 }
             }
@@ -350,14 +356,17 @@ int GetPictureEx(LPCWSTR file_name, const BYTE* data, size_t size, HANDLE* pHBIn
     catch (int e)
     {
         jpegli_destroy_decompress(&cinfo);
+
         return e;
     }
 
     if (cmyk)
     {
-        auto decoder = std::make_unique<SpiWic>();
+        SpiWic wic;
 
-        if (int e = decoder->Decode(data, size, h_bitmap_info, h_bitmap); e != SPI_ALL_RIGHT)
+        auto e = wic.Decode(data, size, h_bitmap_info, h_bitmap);
+
+        if (e != SPI_ALL_RIGHT)
         {
             return e;
         }
