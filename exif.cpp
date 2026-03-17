@@ -3,7 +3,7 @@
 
 #include "exif.h"
 
-int Exif::GetOrientation(const BYTE* data, UINT data_length)
+int Exif::GetOrientation(LPCBYTE data, UINT data_length)
 {
     data_ = data;
     data_length_ = data_length;
@@ -81,14 +81,14 @@ int Exif::GetOrientation(const BYTE* data, UINT data_length)
 
         DWORD value_count = 0;
 
-        if(!GetDataAndMovePointer(value_count))
+        if (!GetDataAndMovePointer(value_count))
         {
             return EXIF_ERROR;
         }
 
         WORD orientation = 0;
 
-        if(!GetDataAndMovePointer(orientation))
+        if (!GetDataAndMovePointer(orientation))
         {
             return EXIF_ERROR;
         }
@@ -143,7 +143,7 @@ DWORD Exif::GetIFD0Address(void) const
 
 bool Exif::MovePointer(UINT length)
 {
-    if(length < data_length_ )
+    if (length < data_length_)
     {
         data_ += length;
         data_length_ -= length;

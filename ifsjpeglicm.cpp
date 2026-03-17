@@ -7,7 +7,7 @@
 #include <lib/jpegli/decode.h>
 #include <opencv2/core.hpp>
 
-bool IsSupportedEx(LPCWSTR filename, const BYTE* data)
+bool IsSupportedEx(LPCWSTR filename, LPCBYTE data)
 {
     if (!data)
     {
@@ -29,7 +29,7 @@ static void error_exit(j_common_ptr cinfo)
     throw SPI_OUT_OF_ORDER;
 }
 
-int GetPictureInfoEx(LPCWSTR file_name, const BYTE* data, size_t size, PictureInfo* lpInfo)
+int GetPictureInfoEx(LPCWSTR file_name, LPCBYTE data, size_t size, PictureInfo* lpInfo)
 {
     if (!IsSupportedEx(file_name, data))
     {
@@ -95,7 +95,7 @@ int GetPictureInfoEx(LPCWSTR file_name, const BYTE* data, size_t size, PictureIn
     return SPI_ALL_RIGHT;
 }
 
-int GetPictureEx(LPCWSTR file_name, const BYTE* data, size_t size, HANDLE* pHBInfo, HANDLE* pHBm, ProgressCallback lpPrgressCallback, LONG_PTR lData)
+int GetPictureEx(LPCWSTR file_name, LPCBYTE data, size_t size, HANDLE* pHBInfo, HANDLE* pHBm, ProgressCallback lpPrgressCallback, LONG_PTR lData)
 {
     if (!IsSupportedEx(file_name, data))
     {
@@ -186,7 +186,7 @@ int GetPictureEx(LPCWSTR file_name, const BYTE* data, size_t size, HANDLE* pHBIn
                     v5->bV5ProfileData = sizeof(BITMAPV5HEADER);
                     v5->bV5ProfileSize = profile_size;
 
-                    std::memcpy(reinterpret_cast<BYTE*>(v5) + v5->bV5ProfileData, profile_data.get(), v5->bV5ProfileSize);
+                    std::memcpy(reinterpret_cast<LPBYTE>(v5) + v5->bV5ProfileData, profile_data.get(), v5->bV5ProfileSize);
                 }
             }
 
@@ -258,7 +258,7 @@ int GetPictureEx(LPCWSTR file_name, const BYTE* data, size_t size, HANDLE* pHBIn
             }
 
             std::unique_ptr<BYTE[]> temp_bitmap;
-            BYTE* ptr_to_bitmap = bitmap;
+            LPBYTE ptr_to_bitmap = bitmap;
 
             if (1 < orientation)
             {

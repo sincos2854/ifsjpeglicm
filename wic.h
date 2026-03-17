@@ -7,11 +7,11 @@
 
 class SpiWic {
 public:
-    SpiWic() : initialized_(false) {}
+    SpiWic() {}
     ~SpiWic() { if (initialized_) CoUninitialize(); }
 
-    int Decode(const BYTE* data, size_t size, PictureHandle& h_bitmap_info, PictureHandle& h_bitmap);
+    int Decode(LPCBYTE data, size_t size, PictureHandle& h_bitmap_info, PictureHandle& h_bitmap);
 
 private:
-    bool initialized_;
+    bool initialized_ = false;
 };

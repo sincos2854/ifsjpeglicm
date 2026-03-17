@@ -25,15 +25,15 @@ constexpr UINT TAG_BYTES = 12;
 class Exif
 {
 public:
-    Exif() : data_(nullptr), data_length_(0), big_endian_(false) {}
+    Exif() {}
     ~Exif() {}
 
-    static bool CheckExif(const BYTE* data, UINT data_length)
+    static bool CheckExif(LPCBYTE data, UINT data_length)
     {
         return EXIF_SIGN_SIZE <= data_length && std::memcmp(data, EXIF_SIGN, EXIF_SIGN_SIZE) == 0 ? true : false;
     }
 
-    int GetOrientation(const BYTE* data, UINT data_length);
+    int GetOrientation(LPCBYTE data, UINT data_length);
 
 private:
     bool GetEndian(void);
@@ -64,7 +64,7 @@ private:
     }
 
 private:
-    const BYTE* data_;
-    UINT data_length_;
-    bool big_endian_;
+    LPCBYTE data_ = nullptr;
+    UINT data_length_ = 0;
+    bool big_endian_ = false;
 };

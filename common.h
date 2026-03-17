@@ -8,6 +8,14 @@
 #include <memory>
 #include "lib/jpegli/decode.h"
 
+struct IccProfileDeleter
+{
+    void operator()(JOCTET* profile_data)
+    {
+        free(profile_data);
+    }
+};
+
 struct FileHandleDeleter
 {
     void operator()(HANDLE handle)
@@ -23,26 +31,18 @@ using FileHandle = std::unique_ptr<std::remove_pointer<HANDLE>::type, FileHandle
 
 struct PictureHandleDeleter
 {
-    void operator()(HANDLE handle)
+    void operator()(HLOCAL handle)
     {
         LocalFree(handle);
     }
 };
 
-using PictureHandle = std::unique_ptr<std::remove_pointer<HANDLE>::type, PictureHandleDeleter>;
-
-struct IccProfileDeleter
-{
-    void operator()(JOCTET* profile_data)
-    {
-        free(profile_data);
-    }
-};
+using PictureHandle = std::unique_ptr<std::remove_pointer<HLOCAL>::type, PictureHandleDeleter>;
 
 class AutoUnlockBitmapHeader
 {
 public:
-    AutoUnlockBitmapHeader(HANDLE handle) : handle_(handle), locked_header_(nullptr), locked_v5_(nullptr)
+    AutoUnlockBitmapHeader(HLOCAL handle) : handle_(handle)
     {
         if (handle_ != nullptr)
         {
@@ -91,19 +91,19 @@ public:
     }
 
 private:
-    HANDLE handle_;
-    LPBITMAPINFOHEADER locked_header_;
-    LPBITMAPV5HEADER locked_v5_;
+    HLOCAL handle_ = nullptr;
+    LPBITMAPINFOHEADER locked_header_ = nullptr;
+    LPBITMAPV5HEADER locked_v5_ = nullptr;
 };
 
 class AutoUnlockBitmap
 {
 public:
-    AutoUnlockBitmap(HANDLE handle) : handle_(handle), locked_bitmap_(nullptr)
+    AutoUnlockBitmap(HLOCAL handle) : handle_(handle)
     {
         if (handle_ != nullptr)
         {
-            locked_bitmap_ = reinterpret_cast<BYTE*>(LocalLock(handle_));
+            locked_bitmap_ = reinterpret_cast<LPBYTE>(LocalLock(handle_));
         }
     }
 
@@ -115,12 +115,12 @@ public:
         }
     }
 
-    BYTE* GetBitmap(void) const
+    LPBYTE GetBitmap(void) const
     {
         return locked_bitmap_;
     }
 
 private:
-    HANDLE handle_;
-    BYTE* locked_bitmap_;
+    HLOCAL handle_ = nullptr;
+    LPBYTE locked_bitmap_ = nullptr;
 };

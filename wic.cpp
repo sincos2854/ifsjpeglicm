@@ -1,14 +1,14 @@
 // Copyright (c) 2024 - 2026 sincos2854
 // Licensed under the MIT License
 
-#include <wrl\client.h>
-#include <wincodec.h>
 #include "spi00in.h"
 #include "wic.h"
+#include <wrl\client.h>
+#include <wincodec.h>
 
 using namespace Microsoft::WRL;
 
-int SpiWic::Decode(const BYTE* data, size_t size, PictureHandle& h_bitmap_info, PictureHandle& h_bitmap)
+int SpiWic::Decode(LPCBYTE data, size_t size, PictureHandle& h_bitmap_info, PictureHandle& h_bitmap)
 {
     ComPtr<IWICImagingFactory> pFactory;
 
@@ -47,7 +47,7 @@ int SpiWic::Decode(const BYTE* data, size_t size, PictureHandle& h_bitmap_info, 
     hr = pFactory->CreateStream(pStream.GetAddressOf());
     if (FAILED(hr)) return SPI_OTHER_ERROR;
 
-    hr = pStream->InitializeFromMemory(const_cast<BYTE*>(data), static_cast<DWORD>(size));
+    hr = pStream->InitializeFromMemory(const_cast<LPBYTE>(data), static_cast<DWORD>(size));
     if (FAILED(hr)) return SPI_OTHER_ERROR;
 
     ComPtr<IWICBitmapDecoder> pDecoder;
