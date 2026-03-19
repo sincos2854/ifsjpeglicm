@@ -3,6 +3,7 @@
 
 #include "wic.h"
 #include "exif.h"
+#include "jpeg_deleter.h"
 #include "ifsjpeglicm.h"
 #include <lib/jpegli/decode.h>
 #include <opencv2/core.hpp>

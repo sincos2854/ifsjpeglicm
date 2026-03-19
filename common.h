@@ -6,15 +6,6 @@
 #define NOMINMAX
 #include <windows.h>
 #include <memory>
-#include "lib/jpegli/decode.h"
-
-struct IccProfileDeleter
-{
-    void operator()(JOCTET* profile_data)
-    {
-        free(profile_data);
-    }
-};
 
 struct FileHandleDeleter
 {

@@ -22,6 +22,7 @@
     <ClInclude Include="common.h" />
     <ClInclude Include="exif.h" />
     <ClInclude Include="ifsjpeglicm.h" />
+    <ClInclude Include="jpeg_deleter.h" />
     <ClInclude Include="spi00in.h" />
     <ClInclude Include="version.h" />
     <ClInclude Include="wic.h" />

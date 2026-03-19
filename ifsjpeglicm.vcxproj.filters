@@ -29,6 +29,9 @@
     <ClInclude Include="exif.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="jpeg_deleter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ifsjpeglicm.cpp">
