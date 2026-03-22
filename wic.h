@@ -10,7 +10,7 @@ public:
     SpiWic() {}
     ~SpiWic() { if (initialized_) CoUninitialize(); }
 
-    int Decode(LPCBYTE data, size_t size, PictureHandle& h_bitmap_info, PictureHandle& h_bitmap);
+    int Decode(LPCBYTE file_data, size_t file_size, PictureHandle& h_bitmap_info, PictureHandle& h_bitmap);
 
 private:
     bool initialized_ = false;

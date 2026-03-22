@@ -8,15 +8,15 @@
 #include <lib/jpegli/decode.h>
 #include <opencv2/core.hpp>
 
-bool IsSupportedEx(LPCWSTR filename, LPCBYTE data)
+bool IsSupportedEx(LPCWSTR file_name, LPCBYTE file_data)
 {
-    if (!data)
+    if (!file_data)
     {
         return false;
     }
 
     // Check the file header
-    if (std::memcmp(data, "\xFF\xD8\xFF", 3) == 0)
+    if (std::memcmp(file_data, "\xFF\xD8\xFF", 3) == 0)
     {
         return true;
     }
@@ -30,9 +30,9 @@ static void error_exit(j_common_ptr cinfo)
     throw SPI_OUT_OF_ORDER;
 }
 
-int GetPictureInfoEx(LPCWSTR file_name, LPCBYTE data, size_t size, PictureInfo* lpInfo)
+int GetPictureInfoEx(LPCWSTR file_name, LPCBYTE file_data, size_t file_size, PictureInfo* lp_info)
 {
-    if (!IsSupportedEx(file_name, data))
+    if (!IsSupportedEx(file_name, file_data))
     {
         return SPI_NOT_SUPPORT;
     }
@@ -47,7 +47,7 @@ int GetPictureInfoEx(LPCWSTR file_name, LPCBYTE data, size_t size, PictureInfo* 
     try
     {
         jpegli_create_decompress(&cinfo);
-        jpegli_mem_src(&cinfo, data, static_cast<unsigned long>(size));
+        jpegli_mem_src(&cinfo, file_data, static_cast<unsigned long>(file_size));
 
         // Required to get the EXIF data
         jpegli_save_markers(&cinfo, JPEG_APP0 + 1, 0xFFFF);
@@ -76,19 +76,19 @@ int GetPictureInfoEx(LPCWSTR file_name, LPCBYTE data, size_t size, PictureInfo* 
         return e;
     }
 
-    *lpInfo = {};
-    lpInfo->width = cinfo.image_width;
-    lpInfo->height = cinfo.image_height;
-    lpInfo->x_density = cinfo.X_density;
-    lpInfo->y_density = cinfo.Y_density;
-    lpInfo->colorDepth = 32;
+    *lp_info = {};
+    lp_info->width = cinfo.image_width;
+    lp_info->height = cinfo.image_height;
+    lp_info->x_density = cinfo.X_density;
+    lp_info->y_density = cinfo.Y_density;
+    lp_info->colorDepth = 32;
 
     if (5 <= orientation)
     {
-        lpInfo->width = cinfo.image_height;
-        lpInfo->height = cinfo.image_width;
-        lpInfo->x_density = cinfo.Y_density;
-        lpInfo->y_density = cinfo.X_density;
+        lp_info->width = cinfo.image_height;
+        lp_info->height = cinfo.image_width;
+        lp_info->x_density = cinfo.Y_density;
+        lp_info->y_density = cinfo.X_density;
     }
 
     jpegli_destroy_decompress(&cinfo);
@@ -96,16 +96,16 @@ int GetPictureInfoEx(LPCWSTR file_name, LPCBYTE data, size_t size, PictureInfo* 
     return SPI_ALL_RIGHT;
 }
 
-int GetPictureEx(LPCWSTR file_name, LPCBYTE data, size_t size, HANDLE* pHBInfo, HANDLE* pHBm, ProgressCallback lpPrgressCallback, LONG_PTR lData)
+int GetPictureEx(LPCWSTR file_name, LPCBYTE file_data, size_t file_size, HANDLE* out_bitmap_info, HANDLE* out_bitmap, SUSIE_PROGRESS lp_callback, LONG_PTR lp_data)
 {
-    if (!IsSupportedEx(file_name, data))
+    if (!IsSupportedEx(file_name, file_data))
     {
         return SPI_NOT_SUPPORT;
     }
 
-    if (lpPrgressCallback)
+    if (lp_callback)
     {
-        if (lpPrgressCallback(0, 100, lData))
+        if (lp_callback(0, 100, lp_data))
         {
             return SPI_ABORT;
         }
@@ -124,7 +124,7 @@ int GetPictureEx(LPCWSTR file_name, LPCBYTE data, size_t size, HANDLE* pHBInfo, 
     try
     {
         jpegli_create_decompress(&cinfo);
-        jpegli_mem_src(&cinfo, data, static_cast<unsigned long>(size));
+        jpegli_mem_src(&cinfo, file_data, static_cast<unsigned long>(file_size));
 
         // Required to get the EXIF data
         jpegli_save_markers(&cinfo, JPEG_APP0 + 1, 0xFFFF);
@@ -365,7 +365,7 @@ int GetPictureEx(LPCWSTR file_name, LPCBYTE data, size_t size, HANDLE* pHBInfo, 
     {
         SpiWic wic;
 
-        auto e = wic.Decode(data, size, h_bitmap_info, h_bitmap);
+        auto e = wic.Decode(file_data, file_size, h_bitmap_info, h_bitmap);
 
         if (e != SPI_ALL_RIGHT)
         {
@@ -373,16 +373,16 @@ int GetPictureEx(LPCWSTR file_name, LPCBYTE data, size_t size, HANDLE* pHBInfo, 
         }
     }
 
-    if (lpPrgressCallback)
+    if (lp_callback)
     {
-        if (lpPrgressCallback(100, 100, lData))
+        if (lp_callback(100, 100, lp_data))
         {
             return SPI_ABORT;
         }
     }
 
-    *pHBInfo = h_bitmap_info.get();
-    *pHBm = h_bitmap.get();
+    *out_bitmap_info = h_bitmap_info.get();
+    *out_bitmap = h_bitmap.get();
 
     h_bitmap_info.release();
     h_bitmap.release();

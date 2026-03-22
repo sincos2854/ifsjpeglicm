@@ -8,13 +8,13 @@
 
 using namespace Microsoft::WRL;
 
-int SpiWic::Decode(LPCBYTE data, size_t size, PictureHandle& h_bitmap_info, PictureHandle& h_bitmap)
+int SpiWic::Decode(LPCBYTE file_data, size_t file_size, PictureHandle& h_bitmap_info, PictureHandle& h_bitmap)
 {
     ComPtr<IWICImagingFactory> pFactory;
 
     auto hr = CoCreateInstance(
         CLSID_WICImagingFactory,
-        NULL,
+        nullptr,
         CLSCTX_INPROC_SERVER,
         IID_IWICImagingFactory,
         reinterpret_cast<void**>(pFactory.GetAddressOf())
@@ -22,7 +22,7 @@ int SpiWic::Decode(LPCBYTE data, size_t size, PictureHandle& h_bitmap_info, Pict
 
     if (hr == CO_E_NOTINITIALIZED)
     {
-        auto error = CoInitializeEx(NULL, COINIT_MULTITHREADED | COINIT_DISABLE_OLE1DDE);
+        auto error = CoInitializeEx(nullptr, COINIT_MULTITHREADED | COINIT_DISABLE_OLE1DDE);
         if (SUCCEEDED(error))
         {
             initialized_ = true;
@@ -30,7 +30,7 @@ int SpiWic::Decode(LPCBYTE data, size_t size, PictureHandle& h_bitmap_info, Pict
 
         error = CoCreateInstance(
             CLSID_WICImagingFactory,
-            NULL,
+            nullptr,
             CLSCTX_INPROC_SERVER,
             IID_IWICImagingFactory,
             reinterpret_cast<void**>(pFactory.GetAddressOf())
@@ -47,14 +47,14 @@ int SpiWic::Decode(LPCBYTE data, size_t size, PictureHandle& h_bitmap_info, Pict
     hr = pFactory->CreateStream(pStream.GetAddressOf());
     if (FAILED(hr)) return SPI_OTHER_ERROR;
 
-    hr = pStream->InitializeFromMemory(const_cast<LPBYTE>(data), static_cast<DWORD>(size));
+    hr = pStream->InitializeFromMemory(const_cast<LPBYTE>(file_data), static_cast<DWORD>(file_size));
     if (FAILED(hr)) return SPI_OTHER_ERROR;
 
     ComPtr<IWICBitmapDecoder> pDecoder;
 
     hr = pFactory->CreateDecoderFromStream(
         pStream.Get(),
-        NULL,
+        nullptr,
         WICDecodeMetadataCacheOnLoad,
         pDecoder.GetAddressOf()
     );
@@ -103,7 +103,7 @@ int SpiWic::Decode(LPCBYTE data, size_t size, PictureHandle& h_bitmap_info, Pict
         pFrameDecode.Get(),
         GUID_WICPixelFormat32bppBGRA,
         WICBitmapDitherTypeNone,
-        NULL,
+        nullptr,
         1.,
         WICBitmapPaletteTypeCustom
     );
@@ -116,7 +116,7 @@ int SpiWic::Decode(LPCBYTE data, size_t size, PictureHandle& h_bitmap_info, Pict
     auto bitmap = auto_unlock_bitmap->GetBitmap();
     if (!bitmap) return SPI_NO_MEMORY;
 
-    hr = pConverter->CopyPixels(NULL, stride, static_cast<UINT>(bitmap_size), bitmap);
+    hr = pConverter->CopyPixels(nullptr, stride, static_cast<UINT>(bitmap_size), bitmap);
     if (FAILED(hr)) return SPI_OTHER_ERROR;
 
     // Faster than IWICBitmapFlipRotator
