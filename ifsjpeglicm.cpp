@@ -54,7 +54,7 @@ int GetPictureInfoEx(LPCWSTR file_name, LPCBYTE file_data, size_t file_size, Pic
         // Required to get the EXIF data
         jpegli_save_markers(&cinfo, JPEG_APP0 + 1, 0xFFFF);
 
-        if (jpegli_read_header(&cinfo, FALSE) == JPEG_SUSPENDED)
+        if (jpegli_read_header(&cinfo, TRUE) != JPEG_HEADER_OK)
         {
             return SPI_OUT_OF_ORDER;
         }
@@ -133,7 +133,7 @@ int GetPictureEx(LPCWSTR file_name, LPCBYTE file_data, size_t file_size, HLOCAL*
         // Required to get the ICC Profile
         jpegli_save_markers(&cinfo, JPEG_APP0 + 2, 0xFFFF);
 
-        if (jpegli_read_header(&cinfo, TRUE) == JPEG_SUSPENDED)
+        if (jpegli_read_header(&cinfo, TRUE) != JPEG_HEADER_OK)
         {
             return SPI_OUT_OF_ORDER;
         }
