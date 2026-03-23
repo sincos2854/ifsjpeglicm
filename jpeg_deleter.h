@@ -14,3 +14,23 @@ struct IccProfileDeleter
         free(profile_data);
     }
 };
+
+class JepegResourceGuard
+{
+public:
+    JepegResourceGuard(jpeg_decompress_struct* cinfop) : cinfop_(cinfop) {}
+
+    ~JepegResourceGuard()
+    {
+        if (cinfop_)
+        {
+            jpegli_destroy_decompress(cinfop_);
+        }
+    }
+
+    JepegResourceGuard(const JepegResourceGuard&) = delete;
+    JepegResourceGuard& operator=(const JepegResourceGuard&) = delete;
+
+private:
+    jpeg_decompress_struct* cinfop_ = nullptr;
+};

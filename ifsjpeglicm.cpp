@@ -37,15 +37,17 @@ int GetPictureInfoEx(LPCWSTR file_name, LPCBYTE file_data, size_t file_size, Pic
         return SPI_NOT_SUPPORT;
     }
 
-    jpeg_decompress_struct cinfo{};
-    jpeg_error_mgr jerr{};
-    int orientation = 0;
-
-    cinfo.err = jpegli_std_error(&jerr);
-    jerr.error_exit = error_exit;
-
     try
     {
+        jpeg_decompress_struct cinfo{};
+        jpeg_error_mgr jerr{};
+        int orientation = 0;
+
+        cinfo.err = jpegli_std_error(&jerr);
+        jerr.error_exit = error_exit;
+
+        JepegResourceGuard jpeg_guard(&cinfo);
+
         jpegli_create_decompress(&cinfo);
         jpegli_mem_src(&cinfo, file_data, static_cast<unsigned long>(file_size));
 
@@ -54,7 +56,7 @@ int GetPictureInfoEx(LPCWSTR file_name, LPCBYTE file_data, size_t file_size, Pic
 
         if (jpegli_read_header(&cinfo, FALSE) == JPEG_SUSPENDED)
         {
-            throw SPI_OUT_OF_ORDER;
+            return SPI_OUT_OF_ORDER;
         }
 
         for (auto marker = cinfo.marker_list; marker; marker = marker->next)
@@ -68,35 +70,31 @@ int GetPictureInfoEx(LPCWSTR file_name, LPCBYTE file_data, size_t file_size, Pic
                 break;
             }
         }
+
+        *lp_info = {};
+        lp_info->width = cinfo.image_width;
+        lp_info->height = cinfo.image_height;
+        lp_info->x_density = cinfo.X_density;
+        lp_info->y_density = cinfo.Y_density;
+        lp_info->colorDepth = 32;
+
+        if (5 <= orientation)
+        {
+            lp_info->width = cinfo.image_height;
+            lp_info->height = cinfo.image_width;
+            lp_info->x_density = cinfo.Y_density;
+            lp_info->y_density = cinfo.X_density;
+        }
     }
     catch (int e)
     {
-        jpegli_destroy_decompress(&cinfo);
-
         return e;
     }
-
-    *lp_info = {};
-    lp_info->width = cinfo.image_width;
-    lp_info->height = cinfo.image_height;
-    lp_info->x_density = cinfo.X_density;
-    lp_info->y_density = cinfo.Y_density;
-    lp_info->colorDepth = 32;
-
-    if (5 <= orientation)
-    {
-        lp_info->width = cinfo.image_height;
-        lp_info->height = cinfo.image_width;
-        lp_info->x_density = cinfo.Y_density;
-        lp_info->y_density = cinfo.X_density;
-    }
-
-    jpegli_destroy_decompress(&cinfo);
 
     return SPI_ALL_RIGHT;
 }
 
-int GetPictureEx(LPCWSTR file_name, LPCBYTE file_data, size_t file_size, HANDLE* out_bitmap_info, HANDLE* out_bitmap, SUSIE_PROGRESS lp_callback, LONG_PTR lp_data)
+int GetPictureEx(LPCWSTR file_name, LPCBYTE file_data, size_t file_size, HLOCAL* out_bitmap_info, HLOCAL* out_bitmap, SUSIE_PROGRESS lp_callback, LONG_PTR lp_data)
 {
     if (!IsSupportedEx(file_name, file_data))
     {
@@ -114,15 +112,18 @@ int GetPictureEx(LPCWSTR file_name, LPCBYTE file_data, size_t file_size, HANDLE*
     PictureHandle h_bitmap_info;
     PictureHandle h_bitmap;
 
-    jpeg_decompress_struct cinfo{};
-    jpeg_error_mgr jerr{};
     bool cmyk = false;
-
-    cinfo.err = jpegli_std_error(&jerr);
-    jerr.error_exit = error_exit;
 
     try
     {
+        jpeg_decompress_struct cinfo{};
+        jpeg_error_mgr jerr{};
+
+        cinfo.err = jpegli_std_error(&jerr);
+        jerr.error_exit = error_exit;
+
+        JepegResourceGuard jpeg_guard(&cinfo);
+
         jpegli_create_decompress(&cinfo);
         jpegli_mem_src(&cinfo, file_data, static_cast<unsigned long>(file_size));
 
@@ -134,14 +135,13 @@ int GetPictureEx(LPCWSTR file_name, LPCBYTE file_data, size_t file_size, HANDLE*
 
         if (jpegli_read_header(&cinfo, TRUE) == JPEG_SUSPENDED)
         {
-            throw SPI_OUT_OF_ORDER;
+            return SPI_OUT_OF_ORDER;
         }
 
         // CMYK/YCCK
         if (cinfo.out_color_space == JCS_CMYK || cinfo.out_color_space == JCS_YCCK)
         {
             cmyk = true;
-            jpegli_destroy_decompress(&cinfo);
         }
         // Not CMYK/YCCK
         else
@@ -150,7 +150,7 @@ int GetPictureEx(LPCWSTR file_name, LPCBYTE file_data, size_t file_size, HANDLE*
 
             if (!jpegli_start_decompress(&cinfo))
             {
-                throw SPI_OUT_OF_ORDER;
+                return SPI_OUT_OF_ORDER;
             }
 
             LONG width = cinfo.output_width;
@@ -170,14 +170,14 @@ int GetPictureEx(LPCWSTR file_name, LPCBYTE file_data, size_t file_size, HANDLE*
 
                     if (!h_bitmap_info)
                     {
-                        throw SPI_NO_MEMORY;
+                        return SPI_NO_MEMORY;
                     }
 
                     auto auto_unlock_header = std::make_unique<AutoUnlockBitmapHeader>(h_bitmap_info.get());
 
                     if (!auto_unlock_header->MakeV5Header())
                     {
-                        throw SPI_MEMORY_ERROR;
+                        return SPI_MEMORY_ERROR;
                     }
 
                     auto v5 = auto_unlock_header->GetV5Header();
@@ -197,7 +197,7 @@ int GetPictureEx(LPCWSTR file_name, LPCBYTE file_data, size_t file_size, HANDLE*
 
                 if (!h_bitmap_info)
                 {
-                    throw SPI_NO_MEMORY;
+                    return SPI_NO_MEMORY;
                 }
             }
 
@@ -206,7 +206,7 @@ int GetPictureEx(LPCWSTR file_name, LPCBYTE file_data, size_t file_size, HANDLE*
 
             if (!bitmap_header)
             {
-                throw SPI_MEMORY_ERROR;
+                return SPI_MEMORY_ERROR;
             }
 
             if (!auto_unlock_header->GetV5Header())
@@ -247,7 +247,7 @@ int GetPictureEx(LPCWSTR file_name, LPCBYTE file_data, size_t file_size, HANDLE*
 
             if (!h_bitmap)
             {
-                throw SPI_NO_MEMORY;
+                return SPI_NO_MEMORY;
             }
 
             auto auto_unlock_bitmap = std::make_unique<AutoUnlockBitmap>(h_bitmap.get());
@@ -255,7 +255,7 @@ int GetPictureEx(LPCWSTR file_name, LPCBYTE file_data, size_t file_size, HANDLE*
 
             if (!bitmap)
             {
-                throw SPI_MEMORY_ERROR;
+                return SPI_MEMORY_ERROR;
             }
 
             std::unique_ptr<BYTE[]> temp_bitmap;
@@ -284,7 +284,7 @@ int GetPictureEx(LPCWSTR file_name, LPCBYTE file_data, size_t file_size, HANDLE*
             {
                 if (!temp_bitmap)
                 {
-                    throw SPI_OTHER_ERROR;
+                    return SPI_OTHER_ERROR;
                 }
 
                 // 1: Do nothing
@@ -351,13 +351,10 @@ int GetPictureEx(LPCWSTR file_name, LPCBYTE file_data, size_t file_size, HANDLE*
             }
 
             jpegli_finish_decompress(&cinfo);
-            jpegli_destroy_decompress(&cinfo);
         }
     }
     catch (int e)
     {
-        jpegli_destroy_decompress(&cinfo);
-
         return e;
     }
 
