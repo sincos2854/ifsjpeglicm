@@ -146,15 +146,8 @@ int GetPictureEx(LPCWSTR file_name, LPCBYTE file_data, size_t file_size, HLOCAL*
         // Not CMYK/YCCK
         else
         {
-            cinfo.out_color_space = JCS_EXT_BGRA;
-
-            if (!jpegli_start_decompress(&cinfo))
-            {
-                return SPI_OUT_OF_ORDER;
-            }
-
-            LONG width = cinfo.output_width;
-            LONG height = cinfo.output_height;
+            LONG width = cinfo.image_width;
+            LONG height = cinfo.image_height;
             DWORD stride = width * 4;
             size_t bitmap_size = static_cast<size_t>(height) * stride;
 
@@ -273,6 +266,13 @@ int GetPictureEx(LPCWSTR file_name, LPCBYTE file_data, size_t file_size, HLOCAL*
             {
                 //ptr_array[j] = ptr_to_bitmap + j * stride;
                 ptr_array[j] = ptr_to_bitmap + (height - j - 1) * stride;
+            }
+
+            cinfo.out_color_space = JCS_EXT_BGRA;
+
+            if (!jpegli_start_decompress(&cinfo))
+            {
+                return SPI_OUT_OF_ORDER;
             }
 
             while (cinfo.output_scanline < cinfo.output_height)
