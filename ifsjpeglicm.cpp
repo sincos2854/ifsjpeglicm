@@ -166,14 +166,14 @@ int GetPictureEx(LPCWSTR file_name, LPCBYTE file_data, size_t file_size, HLOCAL*
                         return SPI_NO_MEMORY;
                     }
 
-                    auto auto_unlock_header = std::make_unique<AutoUnlockBitmapHeader>(h_bitmap_info.get());
+                    AutoUnlockBitmapHeader auto_unlock_header(h_bitmap_info.get());
 
-                    if (!auto_unlock_header->MakeV5Header())
+                    if (!auto_unlock_header.MakeV5Header())
                     {
                         return SPI_MEMORY_ERROR;
                     }
 
-                    auto v5 = auto_unlock_header->GetV5Header();
+                    auto v5 = auto_unlock_header.GetV5Header();
 
                     v5->bV5Size = sizeof(BITMAPV5HEADER);
                     v5->bV5CSType = PROFILE_EMBEDDED;
@@ -194,15 +194,15 @@ int GetPictureEx(LPCWSTR file_name, LPCBYTE file_data, size_t file_size, HLOCAL*
                 }
             }
 
-            auto auto_unlock_header = std::make_unique<AutoUnlockBitmapHeader>(h_bitmap_info.get());
-            auto bitmap_header = auto_unlock_header->GetBitmapHeader();
+            AutoUnlockBitmapHeader auto_unlock_header(h_bitmap_info.get());
+            auto bitmap_header = auto_unlock_header.GetBitmapHeader();
 
             if (!bitmap_header)
             {
                 return SPI_MEMORY_ERROR;
             }
 
-            if (!auto_unlock_header->GetV5Header())
+            if (!auto_unlock_header.GetV5Header())
             {
                 bitmap_header->biSize = sizeof(BITMAPINFOHEADER);
             }
@@ -243,8 +243,8 @@ int GetPictureEx(LPCWSTR file_name, LPCBYTE file_data, size_t file_size, HLOCAL*
                 return SPI_NO_MEMORY;
             }
 
-            auto auto_unlock_bitmap = std::make_unique<AutoUnlockBitmap>(h_bitmap.get());
-            auto bitmap = auto_unlock_bitmap->GetBitmap();
+            AutoUnlockBitmap auto_unlock_bitmap(h_bitmap.get());
+            auto bitmap = auto_unlock_bitmap.GetBitmap();
 
             if (!bitmap)
             {
