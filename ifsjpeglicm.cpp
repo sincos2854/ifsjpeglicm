@@ -226,11 +226,6 @@ int GetPictureEx(LPCWSTR file_name, LPCBYTE file_data, size_t file_size, HLOCAL*
 
                     orientation = exif.GetOrientation(marker->data , marker->data_length);
 
-                    if (orientation < 1)
-                    {
-                        orientation = 1;
-                    }
-
                     break;
                 }
             }
@@ -254,7 +249,7 @@ int GetPictureEx(LPCWSTR file_name, LPCBYTE file_data, size_t file_size, HLOCAL*
             std::unique_ptr<BYTE[]> temp_bitmap;
             LPBYTE ptr_to_bitmap = bitmap;
 
-            if (1 < orientation)
+            if (MIN_ORIENTATION < orientation)
             {
                 temp_bitmap = std::make_unique_for_overwrite<BYTE[]>(bitmap_size);
                 ptr_to_bitmap = temp_bitmap.get();
@@ -280,7 +275,7 @@ int GetPictureEx(LPCWSTR file_name, LPCBYTE file_data, size_t file_size, HLOCAL*
                 jpegli_read_scanlines(&cinfo, &ptr_array[cinfo.output_scanline], cinfo.output_height - cinfo.output_scanline);
             }
 
-            if (1 < orientation)
+            if (MIN_ORIENTATION < orientation)
             {
                 if (!temp_bitmap)
                 {

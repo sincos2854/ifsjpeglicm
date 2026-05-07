@@ -7,13 +7,14 @@ int Exif::GetOrientation(LPCBYTE data, UINT data_length)
 {
     data_ = data;
     data_length_ = data_length;
+    big_endian_ = false;
 
     if (!CheckExif(data_, data_length_))
     {
         return EXIF_ERROR;
     }
 
-    if (!MovePointer(EXIF_SIGN_SIZE))
+    if (!MovePointer(EXIF_SIGN_BYTES))
     {
         return EXIF_ERROR;
     }
@@ -23,9 +24,14 @@ int Exif::GetOrientation(LPCBYTE data, UINT data_length)
         return EXIF_ERROR;
     }
 
+    if (!CheckTiff())
+    {
+        return EXIF_ERROR;
+    }
+
     auto ifd0_address = GetIFD0Address();
 
-    if (ifd0_address == 0)
+    if (ifd0_address < MIN_IFD0_ADDRESS)
     {
         return EXIF_ERROR;
     }
@@ -74,7 +80,7 @@ int Exif::GetOrientation(LPCBYTE data, UINT data_length)
             return EXIF_ERROR;
         }
 
-        if (value_type != 3)
+        if (value_type != ORIENTATION_VALUE_TYPE)
         {
             return EXIF_ERROR;
         }
@@ -86,9 +92,19 @@ int Exif::GetOrientation(LPCBYTE data, UINT data_length)
             return EXIF_ERROR;
         }
 
+        if (value_count != ORIENTATION_VALUE_COUNT)
+        {
+            return EXIF_ERROR;
+        }
+
         WORD orientation = 0;
 
         if (!GetDataAndMovePointer(orientation))
+        {
+            return EXIF_ERROR;
+        }
+
+        if (orientation < MIN_ORIENTATION || MAX_ORIENTATION < orientation)
         {
             return EXIF_ERROR;
         }
@@ -122,6 +138,25 @@ bool Exif::GetEndian(void)
     return true;
 }
 
+bool Exif::CheckTiff(void) const
+{
+    WORD sign = 0;
+
+    if (data_length_ < TIFF_SIGN_OFFSET + sizeof(sign))
+    {
+        return false;
+    }
+
+    std::memcpy(&sign, data_ + TIFF_SIGN_OFFSET, sizeof(sign));
+
+    if (big_endian_)
+    {
+        sign = std::byteswap(sign);
+    }
+
+    return sign == TIFF_SIGN;
+}
+
 DWORD Exif::GetIFD0Address(void) const
 {
     DWORD ifd0_address = 0;
@@ -143,7 +178,7 @@ DWORD Exif::GetIFD0Address(void) const
 
 bool Exif::MovePointer(UINT length)
 {
-    if (length < data_length_)
+    if (length <= data_length_)
     {
         data_ += length;
         data_length_ -= length;
@@ -151,7 +186,6 @@ bool Exif::MovePointer(UINT length)
         return true;
     }
 
-    data_ += data_length_ - 1;
     data_length_ = 0;
 
     return false;
