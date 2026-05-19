@@ -1,19 +1,19 @@
 # ifsjpeglicm
 
-[Jpegli](https://github.com/google/jpegli) Susie Plug-in for JPEG(*.jpeg, *jpg) file.  
+A [Jpegli](https://github.com/google/jpegli) Susie Plug-in for JPEG(`*.jpeg`, `*jpg`) files.  
 Google's announcement : [Introducing Jpegli: A New JPEG Coding Library | Google Open Source Blog](https://opensource.googleblog.com/2024/04/introducing-jpegli-new-jpeg-coding-library.html)  
-(Use WIC(Windows Imaging Component) for CMYK/YCCK JPEG file.)
+(Use WIC(Windows Imaging Component) for CMYK/YCCK JPEG files.)
 
 ## Download
 
-From Releases page
+Download from the [Releases](https://github.com/sincos2854/ifsjpeglicm/releases) page.
 
 ## Features
 
-- 32bit(.spi) and 64bit(.sph)
-- ANSI and Unicode (e.g. GetPicture and GetPictureW)
-- Always returns a 32bit BGRA bitmap
-- ICC Profile (Need a viewer that supports color management like [susico](http://www.vector.co.jp/soft/dl/winnt/art/se515212.html))
+- 32-bit (`.spi`) and 64-bit (`.sph`) support
+- ANSI and Unicode support (e.g., `GetPicture` and `GetPictureW`)
+- Always returns a 32-bit BGRA bitmap
+- ICC profile support (requires a viewer that supports color management, such as [susico](http://www.vector.co.jp/soft/dl/winnt/art/se515212.html))
 
 ## Libraries Used
 
