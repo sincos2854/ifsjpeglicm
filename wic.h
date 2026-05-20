@@ -3,14 +3,14 @@
 
 #pragma once
 
-#include "common.h"
+#include "bitmap_handle.h"
 
-class SpiWic {
+class Wic {
 public:
-    SpiWic() {}
-    ~SpiWic() { if (initialized_) CoUninitialize(); }
+    Wic() {}
+    ~Wic() { if (initialized_) CoUninitialize(); }
 
-    int Decode(LPCBYTE file_data, size_t file_size, PictureHandle& h_bitmap_info, PictureHandle& h_bitmap);
+    int Decode(LPCBYTE file_data, size_t file_size, LocalMemHandle& h_bitmap_info, LocalMemHandle& h_bitmap);
 
 private:
     bool initialized_ = false;

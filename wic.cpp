@@ -8,7 +8,7 @@
 
 using namespace Microsoft::WRL;
 
-int SpiWic::Decode(LPCBYTE file_data, size_t file_size, PictureHandle& h_bitmap_info, PictureHandle& h_bitmap)
+int Wic::Decode(LPCBYTE file_data, size_t file_size, LocalMemHandle& h_bitmap_info, LocalMemHandle& h_bitmap)
 {
     ComPtr<IWICImagingFactory> pFactory;
 
@@ -78,11 +78,11 @@ int SpiWic::Decode(LPCBYTE file_data, size_t file_size, PictureHandle& h_bitmap_
     hr = pFrameDecode->GetResolution(&dpi_x, &dpi_y);
     if (FAILED(hr)) return SPI_OTHER_ERROR;
 
-    h_bitmap_info = PictureHandle(LocalAlloc(LMEM_MOVEABLE | LMEM_ZEROINIT, sizeof(BITMAPINFO)));
+    h_bitmap_info = LocalMemHandle(LocalAlloc(LMEM_MOVEABLE | LMEM_ZEROINIT, sizeof(BITMAPINFO)));
     if (!h_bitmap_info) return SPI_NO_MEMORY;
 
-    auto auto_unlock_header = std::make_unique<AutoUnlockBitmapHeader>(h_bitmap_info.get());
-    auto bitmap_header = auto_unlock_header->GetBitmapHeader();
+    auto locked_header = std::make_unique<LockedBitmapHeader>(h_bitmap_info.get());
+    auto bitmap_header = locked_header->GetBitmapHeader();
     if (!bitmap_header) return SPI_NO_MEMORY;
 
     bitmap_header->biSize = sizeof(BITMAPINFOHEADER);
@@ -109,11 +109,11 @@ int SpiWic::Decode(LPCBYTE file_data, size_t file_size, PictureHandle& h_bitmap_
     );
     if (FAILED(hr)) return SPI_OTHER_ERROR;
 
-    h_bitmap = PictureHandle(LocalAlloc(LMEM_MOVEABLE, bitmap_size));
+    h_bitmap = LocalMemHandle(LocalAlloc(LMEM_MOVEABLE, bitmap_size));
     if (!h_bitmap) return SPI_NO_MEMORY;
 
-    auto auto_unlock_bitmap = std::make_unique<AutoUnlockBitmap>(h_bitmap.get());
-    auto bitmap = auto_unlock_bitmap->GetBitmap();
+    auto locked_bitmap = std::make_unique<LockedBitmap>(h_bitmap.get());
+    auto bitmap = locked_bitmap->GetBitmap();
     if (!bitmap) return SPI_NO_MEMORY;
 
     hr = pConverter->CopyPixels(nullptr, stride, static_cast<UINT>(bitmap_size), bitmap);

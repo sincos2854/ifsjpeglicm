@@ -1,7 +1,8 @@
 // Copyright (c) 2024 - 2026 sincos2854
 // Licensed under the MIT License
 
-#include "common.h"
+#include "spi00in.h"
+#include "file_handle.h"
 #include "ifsjpeglicm.h"
 
 constexpr size_t BUF_SIZE_HEADER = 2048;

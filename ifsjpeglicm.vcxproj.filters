@@ -29,7 +29,13 @@
     <ClInclude Include="exif.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="jpeg_deleter.h">
+    <ClInclude Include="bitmap_handle.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="file_handle.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="jpegli_resource_guard.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
