@@ -77,6 +77,7 @@ exit /b
     -DBUILD_TESTS=OFF ^
     -DBUILD_JAVA=OFF ^
     -DOPENCV_PYTHON_SKIP_DETECTION=ON ^
+    -DENABLE_LTO=ON ^
     -DCV_TRACE=OFF ^
     -DBUILD_opencv_world=OFF
 
