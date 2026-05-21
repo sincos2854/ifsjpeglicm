@@ -5,4 +5,4 @@
 
 #include <windows.h>
 
-constexpr LPCWSTR PLUGIN_NAME = L"Jpegli Susie Plug-in v0.6.7 (c) 2024 - 2026 sincos2854";
+constexpr LPCWSTR PLUGIN_NAME = L"Jpegli Susie Plug-in v0.7.0 (c) 2024 - 2026 sincos2854";
