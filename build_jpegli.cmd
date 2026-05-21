@@ -40,7 +40,8 @@ exit /b
     -DJPEGLI_ENABLE_BENCHMARK=OFF ^
     -DJPEGLI_ENABLE_JNI=OFF ^
     -DJPEGLI_ENABLE_OPENEXR=OFF ^
-    -DJPEGLI_STATIC=ON
+    -DJPEGLI_STATIC=ON ^
+    -DCMAKE_INTERPROCEDURAL_OPTIMIZATION_RELEASE=ON
 
     cmake --build "build_%BUILD_ARCH%_release" --config Release --target install
 
