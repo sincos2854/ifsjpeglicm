@@ -35,24 +35,25 @@ exit /b
     -DCMAKE_BUILD_TYPE=Release ^
     -DCMAKE_MSVC_RUNTIME_LIBRARY="MultiThreaded$<$<CONFIG:Debug>:Debug>" ^
     -DBUILD_TESTING=OFF ^
-    -DJPEGXL_ENABLE_JNI=OFF ^
-    -DJPEGXL_ENABLE_SJPEG=OFF ^
-    -DJPEGXL_ENABLE_OPENEXR=OFF ^
-    -DJPEGXL_ENABLE_BENCHMARK=OFF ^
-    -DJPEGXL_STATIC=ON
+    -DJPEGLI_ENABLE_DOXYGEN=OFF ^
+    -DJPEGLI_ENABLE_MANPAGES=OFF ^
+    -DJPEGLI_ENABLE_BENCHMARK=OFF ^
+    -DJPEGLI_ENABLE_JNI=OFF ^
+    -DJPEGLI_ENABLE_OPENEXR=OFF ^
+    -DJPEGLI_STATIC=ON
 
     cmake --build "build_%BUILD_ARCH%_release" --config Release --target install
 
     cd ..\
 
 :copy_files
-    xcopy /y "jpegli\build_%BUILD_ARCH%_release\lib\include\jpegli\*.h" "include\%BUILD_ARCH%\"
-    xcopy /y "jpegli\lib\jpegli\common.h" "include\%BUILD_ARCH%\lib\jpegli\"
-    xcopy /y "jpegli\lib\jpegli\decode.h" "include\%BUILD_ARCH%\lib\jpegli\"
-    xcopy /y "jpegli\lib\jpegli\types.h" "include\%BUILD_ARCH%\lib\jpegli\"
-    xcopy /y "jpegli\lib\base\include_jpeglib.h" "include\%BUILD_ARCH%\lib\base\"
+    xcopy "jpegli\out_%BUILD_ARCH%_release\include\jpegli\*.h" "include\%BUILD_ARCH%\" /y
+    xcopy "jpegli\lib\jpegli\common.h" "include\%BUILD_ARCH%\lib\jpegli\" /y
+    xcopy "jpegli\lib\jpegli\decode.h" "include\%BUILD_ARCH%\lib\jpegli\" /y
+    xcopy "jpegli\lib\jpegli\types.h" "include\%BUILD_ARCH%\lib\jpegli\" /y
+    xcopy "jpegli\lib\base\include_jpeglib.h" "include\%BUILD_ARCH%\lib\base\" /y
 
-    xcopy /y "jpegli\build_%BUILD_ARCH%_release\lib\Release\jpegli-static.lib" "lib\%BUILD_ARCH%\Release\"
-    xcopy /y "jpegli\out_%BUILD_ARCH%_release\lib\hwy.lib" "lib\%BUILD_ARCH%\Release\"
+    xcopy "jpegli\build_%BUILD_ARCH%_release\lib\Release\jpegli-static.lib" "lib\%BUILD_ARCH%\Release\" /y
+    xcopy "jpegli\out_%BUILD_ARCH%_release\lib\hwy.lib" "lib\%BUILD_ARCH%\Release\" /y
 
     exit /b
