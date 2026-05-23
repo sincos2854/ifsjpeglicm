@@ -7,28 +7,28 @@
 #include <string>
 #include <bit>
 
-constexpr int EXIF_ERROR = -1;
-constexpr int EXIF_NO_ORIENTATION = 0;
+inline constexpr int EXIF_ERROR = -1;
+inline constexpr int EXIF_NO_ORIENTATION = 0;
 
-constexpr char EXIF_SIGN[] = "Exif\0\0";
-constexpr auto EXIF_SIGN_BYTES = std::size(EXIF_SIGN) - 1;
+inline constexpr char EXIF_SIGN[] = "Exif\0\0";
+inline constexpr auto EXIF_SIGN_BYTES = std::size(EXIF_SIGN) - 1;
 
-constexpr std::string_view BIG_ENDIAN_SIGN = "MM";
-constexpr std::string_view LITTLE_ENDIAN_SIGN = "II";
+inline constexpr std::string_view BIG_ENDIAN_SIGN = "MM";
+inline constexpr std::string_view LITTLE_ENDIAN_SIGN = "II";
 
-constexpr UINT TIFF_SIGN_OFFSET = 0x02;
-constexpr WORD TIFF_SIGN = 0x002A;
+inline constexpr UINT TIFF_SIGN_OFFSET = 0x02;
+inline constexpr WORD TIFF_SIGN = 0x002A;
 
-constexpr UINT IFD0_POINTER_STORAGE_ADDRESS = 0x04;
-constexpr DWORD MIN_IFD0_ADDRESS = 0x08;
+inline constexpr UINT IFD0_POINTER_STORAGE_ADDRESS = 0x04;
+inline constexpr DWORD MIN_IFD0_ADDRESS = 0x08;
 
-constexpr UINT TAG_BYTES = 12;
+inline constexpr UINT TAG_BYTES = 12;
 
-constexpr WORD ORIENTATION_TAG = 0x0112;
-constexpr WORD ORIENTATION_VALUE_TYPE = 3;
-constexpr DWORD ORIENTATION_VALUE_COUNT = 1;
-constexpr WORD MIN_ORIENTATION = 1;
-constexpr WORD MAX_ORIENTATION = 8;
+inline constexpr WORD ORIENTATION_TAG = 0x0112;
+inline constexpr WORD ORIENTATION_VALUE_TYPE = 3;
+inline constexpr DWORD ORIENTATION_VALUE_COUNT = 1;
+inline constexpr WORD MIN_ORIENTATION = 1;
+inline constexpr WORD MAX_ORIENTATION = 8;
 
 
 class Exif

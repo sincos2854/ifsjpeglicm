@@ -7,18 +7,18 @@
 #include "version.h"
 #include <string>
 
-constexpr LPCWSTR API_VER = L"00IN";
-constexpr LPCWSTR EXTENSION = L"*.jpeg;*.jpg";
-constexpr LPCWSTR FILE_TYPE = L"JPEG file(*.jpeg;*.jpg)";
+inline constexpr LPCWSTR API_VER = L"00IN";
+inline constexpr LPCWSTR EXTENSION = L"*.jpeg;*.jpg";
+inline constexpr LPCWSTR FILE_TYPE = L"JPEG file(*.jpeg;*.jpg)";
 
-constexpr std::wstring_view PLUGIN_INFO[]{
+inline constexpr std::wstring_view PLUGIN_INFO[]{
     API_VER,
     PLUGIN_NAME,
     EXTENSION,
     FILE_TYPE
 };
 
-constexpr size_t HEADER_MIN_SIZE = 3;
+inline constexpr size_t HEADER_MIN_SIZE = 3;
 
 bool IsSupportedEx(LPCWSTR fil_ename, LPCBYTE file_data);
 int GetPictureInfoEx(LPCWSTR file_name, LPCBYTE file_data, size_t file_size, PictureInfo* lp_info);
