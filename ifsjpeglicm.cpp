@@ -16,7 +16,7 @@ bool IsSupportedEx(LPCWSTR file_name, LPCBYTE file_data)
     }
 
     // Check the file header
-    if (std::memcmp(file_data, "\xFF\xD8\xFF", 3) == 0)
+    if (std::memcmp(file_data, SIGN_BYTES, MIN_HEADER_SIZE) == 0)
     {
         return true;
     }
