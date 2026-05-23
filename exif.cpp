@@ -3,7 +3,7 @@
 
 #include "exif.h"
 
-int Exif::GetOrientation(LPCBYTE data, UINT data_length)
+int Exif::GetOrientation(LPCBYTE data, size_t data_length)
 {
     data_ = data;
     data_length_ = data_length;
@@ -157,7 +157,7 @@ bool Exif::CheckTiff(void) const
     return sign == TIFF_SIGN;
 }
 
-DWORD Exif::GetIFD0Offset(void) const
+size_t Exif::GetIFD0Offset(void) const
 {
     DWORD ifd0_offset = 0;
 
@@ -176,7 +176,7 @@ DWORD Exif::GetIFD0Offset(void) const
     return ifd0_offset;
 }
 
-bool Exif::MovePointer(UINT length)
+bool Exif::MovePointer(size_t length)
 {
     if (length <= data_length_)
     {
