@@ -14,7 +14,7 @@ int Exif::GetOrientation(LPCBYTE data, UINT data_length)
         return EXIF_ERROR;
     }
 
-    if (!MovePointer(EXIF_SIGN_BYTES))
+    if (!MovePointer(EXIF_SIGN_SIZE))
     {
         return EXIF_ERROR;
     }
@@ -29,14 +29,14 @@ int Exif::GetOrientation(LPCBYTE data, UINT data_length)
         return EXIF_ERROR;
     }
 
-    auto ifd0_address = GetIFD0Address();
+    auto ifd0_offset = GetIFD0Offset();
 
-    if (ifd0_address < MIN_IFD0_ADDRESS)
+    if (ifd0_offset < MIN_IFD0_OFFSET)
     {
         return EXIF_ERROR;
     }
 
-    if (!MovePointer(ifd0_address))
+    if (!MovePointer(ifd0_offset))
     {
         return EXIF_ERROR;
     }
@@ -59,7 +59,7 @@ int Exif::GetOrientation(LPCBYTE data, UINT data_length)
 
         if (tag < ORIENTATION_TAG)
         {
-            if (!MovePointer(TAG_BYTES - sizeof(tag)))
+            if (!MovePointer(TAG_SIZE - sizeof(tag)))
             {
                 return EXIF_ERROR;
             }
@@ -117,16 +117,16 @@ int Exif::GetOrientation(LPCBYTE data, UINT data_length)
 
 bool Exif::GetEndian(void)
 {
-    if (data_length_ < BIG_ENDIAN_SIGN.size())
+    if (data_length_ < BE_SIGN_BYTES.size())
     {
         return false;
     }
 
-    if (std::memcmp(data_, BIG_ENDIAN_SIGN.data(), BIG_ENDIAN_SIGN.size()) == 0)
+    if (std::memcmp(data_, BE_SIGN_BYTES.data(), BE_SIGN_BYTES.size()) == 0)
     {
         big_endian_ = true;
     }
-    else if (std::memcmp(data_, LITTLE_ENDIAN_SIGN.data(), LITTLE_ENDIAN_SIGN.size()) == 0)
+    else if (std::memcmp(data_, LE_SIGN_BYTES.data(), LE_SIGN_BYTES.size()) == 0)
     {
         big_endian_ = false;
     }
@@ -157,23 +157,23 @@ bool Exif::CheckTiff(void) const
     return sign == TIFF_SIGN;
 }
 
-DWORD Exif::GetIFD0Address(void) const
+DWORD Exif::GetIFD0Offset(void) const
 {
-    DWORD ifd0_address = 0;
+    DWORD ifd0_offset = 0;
 
-    if (data_length_ < IFD0_POINTER_STORAGE_ADDRESS + sizeof(ifd0_address))
+    if (data_length_ < IFD0_POINTER_OFFSET + sizeof(ifd0_offset))
     {
         return 0;
     }
 
-    std::memcpy(&ifd0_address, data_ + IFD0_POINTER_STORAGE_ADDRESS, sizeof(ifd0_address));
+    std::memcpy(&ifd0_offset, data_ + IFD0_POINTER_OFFSET, sizeof(ifd0_offset));
 
     if (big_endian_)
     {
-        ifd0_address = std::byteswap(ifd0_address);
+        ifd0_offset = std::byteswap(ifd0_offset);
     }
 
-    return ifd0_address;
+    return ifd0_offset;
 }
 
 bool Exif::MovePointer(UINT length)

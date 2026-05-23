@@ -4,25 +4,26 @@
 #pragma once
 
 #include "common.h"
-#include <string>
+#include <string_view>
 #include <bit>
 
 inline constexpr int EXIF_ERROR = -1;
 inline constexpr int EXIF_NO_ORIENTATION = 0;
 
-inline constexpr char EXIF_SIGN[] = "Exif\0\0";
-inline constexpr auto EXIF_SIGN_BYTES = std::size(EXIF_SIGN) - 1;
+inline constexpr char EXIF_SIGN_BYTES[] = { 'E', 'x', 'i', 'f', '\0', '\0' };
+inline constexpr auto EXIF_SIGN_SIZE = std::size(EXIF_SIGN_BYTES);
 
-inline constexpr std::string_view BIG_ENDIAN_SIGN = "MM";
-inline constexpr std::string_view LITTLE_ENDIAN_SIGN = "II";
+inline constexpr std::string_view LE_SIGN_BYTES = "II";
+inline constexpr std::string_view BE_SIGN_BYTES = "MM";
+static_assert(LE_SIGN_BYTES.size() == BE_SIGN_BYTES.size());
 
-inline constexpr UINT TIFF_SIGN_OFFSET = 0x02;
+inline constexpr UINT TIFF_SIGN_OFFSET = static_cast<UINT>(LE_SIGN_BYTES.size());
 inline constexpr WORD TIFF_SIGN = 0x002A;
 
-inline constexpr UINT IFD0_POINTER_STORAGE_ADDRESS = 0x04;
-inline constexpr DWORD MIN_IFD0_ADDRESS = 0x08;
+inline constexpr UINT IFD0_POINTER_OFFSET = TIFF_SIGN_OFFSET + static_cast<UINT>(sizeof(TIFF_SIGN));
+inline constexpr DWORD MIN_IFD0_OFFSET = IFD0_POINTER_OFFSET + static_cast<DWORD>(sizeof(DWORD));
 
-inline constexpr UINT TAG_BYTES = 12;
+inline constexpr UINT TAG_SIZE = 12;
 
 inline constexpr WORD ORIENTATION_TAG = 0x0112;
 inline constexpr WORD ORIENTATION_VALUE_TYPE = 3;
@@ -39,7 +40,7 @@ public:
 
     static bool CheckExif(LPCBYTE data, UINT data_length)
     {
-        return EXIF_SIGN_BYTES <= data_length && std::memcmp(data, EXIF_SIGN, EXIF_SIGN_BYTES) == 0 ? true : false;
+        return EXIF_SIGN_SIZE <= data_length && std::memcmp(data, EXIF_SIGN_BYTES, EXIF_SIGN_SIZE) == 0;
     }
 
     int GetOrientation(LPCBYTE data, UINT data_length);
@@ -47,7 +48,7 @@ public:
 private:
     bool GetEndian(void);
     bool CheckTiff(void) const;
-    DWORD GetIFD0Address(void) const;
+    DWORD GetIFD0Offset(void) const;
     bool MovePointer(UINT length);
 
     template <typename T>
