@@ -134,7 +134,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
       <AdditionalLibraryDirectories>lib\$(Platform)\$(Configuration)\</AdditionalLibraryDirectories>
-      <AdditionalDependencies>$(CoreLibraryDependencies);%(AdditionalDependencies);hwy.lib;jpegli-static.lib;windowscodecs.lib;opencv_core4130d.lib</AdditionalDependencies>
+      <AdditionalDependencies>$(CoreLibraryDependencies);%(AdditionalDependencies);hwy.lib;jpegli-static.lib;windowscodecs.lib;opencv_core510d.lib</AdditionalDependencies>
       <ModuleDefinitionFile>spi00in.def</ModuleDefinitionFile>
     </Link>
   </ItemDefinitionGroup>
@@ -165,7 +165,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
       <AdditionalLibraryDirectories>lib\$(Platform)\$(Configuration)\</AdditionalLibraryDirectories>
-      <AdditionalDependencies>$(CoreLibraryDependencies);%(AdditionalDependencies);hwy.lib;jpegli-static.lib;windowscodecs.lib;opencv_core4130.lib</AdditionalDependencies>
+      <AdditionalDependencies>$(CoreLibraryDependencies);%(AdditionalDependencies);hwy.lib;jpegli-static.lib;windowscodecs.lib;opencv_core510.lib</AdditionalDependencies>
       <ModuleDefinitionFile>spi00in.def</ModuleDefinitionFile>
     </Link>
   </ItemDefinitionGroup>
@@ -192,7 +192,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
       <AdditionalLibraryDirectories>lib\$(Platform)\$(Configuration)\</AdditionalLibraryDirectories>
-      <AdditionalDependencies>$(CoreLibraryDependencies);%(AdditionalDependencies);hwy.lib;jpegli-static.lib;windowscodecs.lib;opencv_core4130d.lib</AdditionalDependencies>
+      <AdditionalDependencies>$(CoreLibraryDependencies);%(AdditionalDependencies);hwy.lib;jpegli-static.lib;windowscodecs.lib;opencv_core510d.lib</AdditionalDependencies>
       <ModuleDefinitionFile>spi00in.def</ModuleDefinitionFile>
     </Link>
   </ItemDefinitionGroup>
@@ -223,7 +223,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
       <AdditionalLibraryDirectories>lib\$(Platform)\$(Configuration)\</AdditionalLibraryDirectories>
-      <AdditionalDependencies>$(CoreLibraryDependencies);%(AdditionalDependencies);hwy.lib;jpegli-static.lib;windowscodecs.lib;opencv_core4130.lib</AdditionalDependencies>
+      <AdditionalDependencies>$(CoreLibraryDependencies);%(AdditionalDependencies);hwy.lib;jpegli-static.lib;windowscodecs.lib;opencv_core510.lib</AdditionalDependencies>
       <ModuleDefinitionFile>spi00in.def</ModuleDefinitionFile>
     </Link>
   </ItemDefinitionGroup>

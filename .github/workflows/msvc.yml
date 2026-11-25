@@ -22,6 +22,11 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v7
 
+    - name: Rename paths
+      run: |
+        Rename-Item -Path "C:\mingw64" -NewName "mingw64_" -ErrorAction SilentlyContinue
+        Rename-Item -Path "C:\Strawberry" -NewName "Strawberry_" -ErrorAction SilentlyContinue
+
     - name: Set Variables
       run: |
         if ("${{matrix.arch}}" -eq "x86")
